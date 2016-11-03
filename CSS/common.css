@@ -1,0 +1,220 @@
+body,
+div,
+dl,
+dt,
+dd,
+ul,
+ol,
+li,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+pre,
+code,
+form,
+fieldset,
+legend,
+input,
+button,
+textarea,
+p,
+blockquote,
+th,
+td {
+    margin: 0;
+    padding: 0;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-size: 100%;
+}
+ol,
+ul {
+    list-style: none;
+}
+address,
+caption,
+cite,
+code,
+dfn,
+em,
+strong,
+th,
+var,
+optgroup {
+    font-style: normal;
+}
+input,
+button,
+textarea,
+select,
+optgroup,
+option {
+    font-family: inherit;
+    font-size: inherit;
+    font-style: inherit;
+    font-weight: inherit;
+    *font-size: 100%;
+}
+fieldset,
+img,
+a img,
+:link img,
+:visited img {
+    border: 0;
+}
+a {
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+:focus {
+    outline: 0;
+}
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+caption,
+th {
+    text-align: left;
+}
+sup,
+sub {
+    font-size: 100%;
+    vertical-align: baseline;
+}
+blockquote,
+q {
+    quotes: none;
+}
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
+    content: '';
+    content: none;
+}
+
+
+html {
+    font-family: sans-serif;
+    -webkit-user-select: none; /* disable selection */
+    -webkit-user-drag: none; /* disable dragging */
+    cursor: default; /* use default cursor */
+    height: 100%;
+    width: 100%;
+    margin:0;
+    padding:0;
+}
+
+body {
+    margin: 0; /* remove default margin */
+    padding:0;
+}
+
+/* enable text selection */
+
+.is-selectable,
+pre,
+code {
+    -webkit-user-select: auto;
+    cursor: auto;
+}
+
+
+/* Buttons and links */
+
+button{
+    cursor: default;
+}
+
+/* Internal links */
+a {
+    cursor: pointer;
+    text-decoration: none;
+    outline: none;
+}
+
+/* New window (target) + external links */
+a[target],
+a[href^="https://"],
+a[href^="http://"] {
+    /*border-bottom: 1px solid;*/
+}
+
+a:hover,
+a:focus {
+    border-bottom: none;
+}
+
+/* Images */
+
+img {
+    -webkit-user-drag: none; /* disable dragging */
+}
+
+
+/*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
+::-webkit-scrollbar {
+    width:4px;
+    height:4px;
+    background-color: #e2e2e2;
+}
+::-webkit-scrollbar-button{
+    background-color: #e2e2e2;
+}
+/*定义滚动条轨道 内阴影+圆角*/
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    border-radius: 10px;
+    background-color: #e2e2e2;
+}
+
+/*定义滑块 内阴影+圆角 #555*/
+::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+    background-color: #ccc;
+}
+::-webkit-scrollbar-corner{
+    background-color: #e2e2e2;
+}
+::-webkit-scrollbar-track-piece{
+    background-color: #e2e2e2;
+}
+
+@-moz-document url-prefix(http://),url-prefix(https://) {
+    /* 滚动条颜色 */
+    scrollbar {
+        -moz-appearance: none !important;
+        background: rgb(0,255,0) !important;
+    }
+    /* 滚动条按钮颜色 */
+    thumb,scrollbarbutton {
+        -moz-appearance: none !important;
+        background-color: rgb(0,0,255) !important;
+    }
+    /* 鼠标悬停时按钮颜色 */
+
+    thumb:hover,scrollbarbutton:hover {
+        -moz-appearance: none !important;
+        background-color: rgb(255,0,0) !important;
+    }
+    /* 隐藏上下箭头 */
+    scrollbarbutton {
+        display: none !important;
+    }
+    /* 纵向滚动条宽度 */
+    scrollbar[orient="vertical"] {
+        min-width: 15px !important;
+    }
+}

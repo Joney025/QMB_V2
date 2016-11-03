@@ -1,0 +1,110 @@
+
+<template class="task-template">
+<div class="im-section" style="display:none;">
+    <div class="im-msg-list">
+        <div class="i-search-box">
+            <div class="list-searchBox">
+                <div><input type="text" id="im_list_SearchBox" placeholder="搜索..."/></div><span class="i-search-btn"></span>
+            </div>
+        </div>
+        <ul id="chat_listContent" class="chat-listContent">
+            <li id="46441_5bb23a68dc9649c9a66c83dd4a5c62df" data-im="46441_5bb23a68dc9649c9a66c83dd4a5c62df" data-tp="0" onclick="showTalkFrame(this);"><div><img src="Images/IMicon/uface.jpg?UserSign=46441" title="头像"></div><p class="member-title"><a class="msg-snick">spd800</a><a class="msg-stime">15:54</a></p><p title="短消息" class="member_msg">女子在京非法吸储4000余万元潜逃在赣处理违章落网</p><div id="tipCount" class="tipBox" title="未读消息数">5</div></li>
+            <li id="46447_99e4d97d3b654c77b4db55a8269e7636" data-im="46447_99e4d97d3b654c77b4db55a8269e7636" data-tp="0" onclick="showTalkFrame(this);"><div><img src="Images/IMicon/dfUser.png?UserSign=46447" title="头像"></div><p class="member-title"><a class="msg-snick">maggie</a><a class="msg-stime">12:54</a></p><p title="短消息" class="member_msg">[消息]</p><div id="tipCount" class="tipBox" title="未读消息数">99</div></li>
+            <li id="1901141313_1901141313" data-im="1901141313_1901141313" data-tp="1" onclick="showTalkFrame(this);"><div><img src="Images/IMicon/dfGroup.png?docEntry=1901141313" title="头像"></div><p class="member-title"><a class="msg-snick">测试群</a><a class="msg-stime">11-24</a></p><p title="短消息" class="member_msg"></p><div id="tipCount" class="" title="未读消息数"></div></li>
+            <li id="1901148741_1901148741" data-im="1901148741_1901148741" data-tp="1" onclick="showTalkFrame(this);"><div><img src="Images/IMicon/dfGroup.png?docEntry=1901141313" title="头像"></div><p class="member-title"><a class="msg-snick">测试群二</a><a class="msg-stime">10-20</a></p><p title="短消息" class="member_msg"></p><div id="tipCount" class="" title="未读消息数"></div></li>
+        </ul>
+    </div>
+    <div class="im-main">
+        <!--对话框-->
+        <div id="oneBox">
+            <div id="talkingBox" data-action="tabo_one_box_1001" class="talkingBox">
+                <div id="topTitle" class="topTitle">
+                    <div class="user-pic" style="display:none;"></div>
+                    <div id="tName" class="tName"><div id="t_nick"></div><span class="tog-sho"></span></div>
+                    <div class="tak-infos"></div>
+                    <div id="conStatus" style="font-size:10px;"></div>
+                    <input type="hidden" id="TalkType" value=""/>
+                    <input type="hidden" id="TalkID" value="" />
+                    <input type="hidden" id="TalkTitle" value="" />
+                    <input type="hidden" id="curpage" value="1" />
+                    <input type="hidden" id="totpage" value="1" />
+                    <input type="hidden" id="hd_nextKey" value="" />
+                    <input type="hidden" id="o-loadType" value="0" title="load message type." />
+                    <input type="hidden" id="TalkTypeIsCG" value=""/>
+                    <div class="top-talk-close">
+                        <a id="closeTalk"><span>X</span></a>
+                    </div>
+                </div>
+                <div id="msgBox" class="msgBox">
+                    <ul id="msgList">
+                        <li></li>
+                    </ul>
+                </div>
+                <div id="imgBar" class="imgBar">
+                    <a class="si-face" ><span class="t-face"></span></a>
+                    <a class="sb-img"><span class="t-img"></span></a>
+                    <a class="sf-file"><span class="t-file"></span></a>
+                    <a class="sc-img" ><span class="t-cut"></span></a>
+                    <div style="display:none;"><input type="file" id="upImgTarget"/></div>
+                    <div id="uploader" class="wu-example" style="height:30px;overflow:hidden;">
+                        <div id="filePicker"></div>
+                    </div>
+                    <div class="mini-searchBox">
+                        <input type="text" id="txt_search" placeholder="聊天记录" />
+                        <i id="btn_searchMsg" class="txt-search-icon" ></i>
+                    </div>
+                    <div class="face-box" style="display:none;"><div class="face-tab" style="display:none"><a>表情</a></div><div class="face-list emoji"><!--this place is face content.--></div></div>
+                </div>
+                <div id="contentBox">
+                    <div id="txtInput" class="msgArea" contenteditable="true" data-value=""></div>
+                </div>
+                <div id="sendBar" class="sendBar">
+                    <input type="button" id="btnSend" class="IM-btn-sendMsg" style="width:80px;" value="发 送" />
+                </div>
+            </div>
+        </div>
+
+        <!--创建讨论组-->
+        <div id="createBox" class="createBox" style="display:none;">
+            <div>
+                <div class="cb-left">
+                    <div class="cb-left-top"><input type="text" id="searchUser" placeholder="输入关键字查找" /></div>
+                    <div class="cb-left-list">
+                        <ul id="userList"></ul>
+                    </div>
+                </div>
+                <div class="cb-center"><span></span></div>
+                <div class="cb-right">
+                    <div class="cb-right-top"><span>已选联系人:</span><label id="sel-cout"></label></div>
+                    <div class="cb-right-list">
+                        <ul id="selectedList"></ul>
+                    </div>
+                </div>
+            </div>
+            <div class="bottom-bar">
+                <span>主题：</span>
+                <input type="text" id="objName" placeholder="请输入讨论组主题" />
+                <input type="button" id="btnSave" onclick="javascript: SaveCreateGroup();" value="确定" />
+                <input type="button" id="closeBtn" value="取消" />
+                <input type="hidden" id="groupID" value="" />
+                <input type="hidden" id="createType" value="0" title="创建=0？修改=1？" />
+                <input type="hidden" id="groupUsers" value="" title="原用户" />
+                <input type="hidden" id="groupTitle" value="" />
+            </div>
+        </div>
+
+        <input type="hidden" id="hd_UserListData" value=""/>
+        <input type="hidden" id="hd_GroupListData" value=""/>
+        <input type="hidden" id="face-box-formID" value="" />
+        <input type="hidden" id="hd_mediaType" value="" />
+        <input type="hidden" id="hd_imgBase64" value="" />
+    </div>
+</div>
+    <script src="./Scripts/JJComment.js" charset="utf-8"></script>
+    <script src="./Scripts/face.js" charset="utf-8"></script>
+    <script src="./Scripts/IMChat.js" charset="utf-8"></script>
+    <script type="text/javascript">
+        const WebUploader=require('./Scripts/webuploader/webuploader');
+    </script>
+
+</template>

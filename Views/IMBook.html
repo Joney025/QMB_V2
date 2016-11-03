@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+<style>
+    a{
+        display:inline-block;
+        height:30px;
+        min-width: 100px;
+        line-height:30px;
+        margin:0;
+        padding:5px;
+        background:#52B2F3;
+        color:#fff;
+        cursor:pointer;
+    }
+    a:hover{
+        background:#30cc54;
+    }
+</style>
+</head>
+<body style="margin:5px;padding:0;overflow: hidden;background: url('../Images/body_bg_page.jpg');min-height: 800px;">
+广播：
+<div id="sayWhat" contenteditable="true" style="height:200px;width:100%;border:2px solid #ccc;background:#fff;margin:5px 0;"></div>
+<a id="abtn_send">Click Me Send...</a>
+<a id="imgTransifrom">Test Img</a>
+<a id="cutScrean">CutImg</a>
+<img id="imgTemp" src="../Images/loadingm.gif" width="100" height="100" alt="Temp Img"/>
+
+</body>
+
+<script>
+    require('../Scripts/jquery-1.8.2');
+    require('../Scripts/JJComment');
+    const {shell}=require('electron');
+    const ipCmd =require('electron').ipcRenderer;
+    const nativeImg=require('electron').nativeImage;
+
+    $(function(){
+        $("#abtn_send").on('click',function(){
+            SendBroadcast();
+        });
+        $("#imgTransifrom").on('click',function(){
+            creatImg($("#sayWhat").text());
+        });
+        $("#cutScrean").click(function(){
+            CutScrean();
+        });
+    });
+
+    document.onkeyup=function(e){
+        var ev=e||window.event;
+        var kc=ev.keyCode;
+        switch(kc){
+            case 13:
+                SendBroadcast();
+                break;
+            default :
+                break;
+        }
+    };
+
+    function CutScrean(){
+        shell.openExternal('../Scripts/ScreanCuter/picpick.exe');
+        //shell.showItemInFolder('../Scripts/ScreanCuter/picpick.exe');
+        //shell.openExternal('mailto: somebody@somewhere.io');
+    }
+
+function creatImg(obj){
+    var img=nativeImg.createFromDataURL(obj);
+    alert(obj);
+    $("#imgTemp").attr("src",img.toDataURL());
+}
+
+
+    function SendBroadcast(){
+        var msg=$("#sayWhat").text();
+        if(msg==''||msg==null){return false;}
+        SendIMmsg2($("#sayWhat").text());
+        $("#sayWhat").text('');
+    }
+    function SendIMmsg2(obj){
+        _sdk.Chat.sendMsg({
+            touid:'99e4d97d3b654c77b4db55a8269e7636',//maggie
+            msg:obj,
+            success: function(data){
+                console.log('消息发送成功', data);
+            },
+            error: function(error){
+                console.log('消息发送失败', error);
+            }
+        });
+    }
+
+
+</script>
+</html>

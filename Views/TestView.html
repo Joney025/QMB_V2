@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1, maximum-scale=1">
+    <title>test</title>
+    <style type="text/css">
+        *{margin:0px;padding:0px;}
+        .header {
+            width: 100%;
+            background: #567;
+            height: 100px;
+        }
+
+        #col1, #col2, #col3 {
+            float: left;
+            width: 80px;
+            background: #DDD;
+            margin-right: 10px;
+            word-wrap:break-word;
+            font-size:12px;
+        }
+        #foot{height:100px; background-color:#ccc;clear:both;}
+        #middle{ zoom:1;}
+    </style>
+</head>
+<body>
+
+<div class="header" id="XX">header</div>
+<div id="middle">
+    <div id="col1">col1</div>
+    <div id="col2">col2</div>
+    <div id="col3">col3</div>
+</div>
+<div id="foot"></div>
+<script>
+    total = document.documentElement.clientHeight;
+    colHeight = total-100-document.getElementById("col1").offsetTop;
+    document.getElementById("col1").style.height=colHeight+"px";
+    document.getElementById("col2").style.height=colHeight+"px";
+    document.getElementById("col3").style.height=colHeight+"px";
+</script>
+</body>
+</html>

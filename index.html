@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="CSS/variables.css">
+  <link rel="stylesheet" href="CSS/section.css">
+  <link rel="stylesheet" href="CSS/common.css">
+  <link rel="stylesheet" href="CSS/main-nav.css">
+  <link rel="stylesheet" href="CSS/About.css">
+  <link rel="stylesheet" href="Scripts/layer/skin/layer.css">
+  <link rel="stylesheet" href="Scripts/layer/skin/layer.ext.css">
+
+  <link href='Scripts/webuploader/webuploader.css' rel="stylesheet" />
+  <link href="Scripts/layer/skin/layer.css" rel="stylesheet" type="text/css" />
+  <link href="Scripts/layer/skin/layer.ext.css" rel="stylesheet" type="text/css" />
+  <link href="CSS/IMChat.css" rel="stylesheet" />
+
+  <link rel="import" href="Views/About.html">
+  <link rel="import" href="Views/IMChat.html">
+    <link rel="import" href="Views/OAPage.html">
+    <style>
+        webview.hide {
+            flex: 0 1;
+            width: 0px;
+            height: 0px;
+        }
+    </style>
+</head>
+  <body>
+  <div class="container">
+    <div class="top-banner">
+      <div class="logo-bar">
+        <div class="logo-icon"><img src="Images/APP.png" style="width:30px;height:30px;"></div>
+        <p>我的圈圈</p>
+      </div>
+      <div class="close-bar">
+        <ul>
+          <li class="clo-min"><span class="clo-min" title="最小化"><i></i></span></li>
+          <li class="clo-max"><span class="clo-max" title="最大化"><i></i></span></li>
+          <li class="clo-ose"><span class="clo-ose" title="关闭"><i></i></span></li>
+        </ul>
+      </div>
+    </div>
+      <div class="main">
+        <div class="nav-left row">
+          <ul id="nav_menu">
+            <li class="nav-msg" data-section="IMChat">
+              <a href="javascript:;" data-section="IMChat" target="_self"><i title="消息"></i><span></span>消息</a>
+            </li>
+            <li class="nav-partner" data-section="IMBook">
+              <a href="javascript:;" data-section="IMBook" target="_self"><i title="伙伴"></i><span></span>伙伴</a>
+            </li>
+            <li class="nav-oa" data-section="OAPage">
+              <a href="javascript:;" data-section="OAPage" target="_self"><i title="动态"></i><span></span>动态</a>
+            </li>
+            <li class="nav-more" data-section="home">
+              <a href="javascript:;" data-section="home" target="_self"><i title="更多"></i><span></span>更多</a>
+            </li>
+              <li class="nav-more" data-section="TestView">
+                  <a href="javascript:;" data-section="TestView" target="_self"><i title="测试"></i><span></span>测试</a>
+              </li>
+              <li class="nav-more" data-section="MyInfo">
+                  <a href="javascript:;" data-section="MyInfo" target="_self"><i title="测试2"></i><span></span>测试2</a>
+              </li>
+          </ul>
+          <div class="setting-box">
+            <a data-action="setting" class="sys-setting" title="设置"><span><i></i></span></a>
+            <ul class="setting-list" >
+              <li><a data-action="info"><span>个人设置</span></a></li>
+              <li><a data-action="sys"><span>系统设置</span></a></li>
+              <li><a data-action="pwd"><span>修改密码</span></a></li>
+              <li><a data-action="exit"><span>退出系统</span></a></li>
+              <li><a data-action="about"><span>关于我们</span></a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="main-box row">
+            <div class="web-view"><webview id="mainframe" src="home.html" nodeintegration="on" plugins="on" autosize="on" style="display:flex;position:fixed;height:100%;width:100%;"></webview></div>
+        </div>
+      </div>
+  </div>
+  <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+  <script src="https://g.alicdn.com/aliww/ww/json/json.js" charset="utf-8"></script>
+  <script src="https://g.alicdn.com/aliww/h5.imsdk/2.2.2/scripts/yw/wsdk.js" type="text/javascript" charset="utf-8"></script>
+  <script>if (window.module) module = window.module;</script>
+
+  <script>
+    const _sdk = new WSDK();
+    require('./Scripts/jquery-1.8.2');
+    require('./Scripts/imports');
+    require('./Scripts/ex-links');
+    require('./Scripts/JJComment');
+    require('./Scripts/layer/layer');
+    require('./Scripts/layer/extend/layer.ext');
+    require('./Scripts/nav-menu');
+    require('./Scripts/IMChat');
+    require('./Scripts/IMSDK');
+
+    const {shell}=require('electron');
+    const _ipc = require('electron').ipcRenderer;
+    const nativeImg=require('electron').nativeImage;
+
+    _ipc.on('ping',function(e,obj){
+        layer.msg(obj);
+        saySomething();
+    });
+    function winExit() {
+        _ipc.send('win-exit');
+    }
+    function winMin() {
+        _ipc.send('win-min');
+    }
+    function winMax() {
+        _ipc.send('win-max');
+    }
+    function saySomething(){
+        var smg={'sender':'system','text':'您有n条未处理消息！','Img':'./Images/lookme.jpg'};
+        _ipc.send('im-msg',smg);
+    }
+
+$(document).ready(function(){
+    console.log('jquery is ready.');
+    $(".clo-ose").click(function(){
+        winExit();
+    });
+    $(".clo-min").click(function(){
+        winMin();
+    });
+    $(".clo-max").click(function(){
+        winMax();
+    });
+    IMLogin();
+
+    $(".sys-setting").toggle(function(){
+        $(".setting-list").addClass("fo-show");
+    },function(){
+        $(".setting-list").removeClass("fo-show");
+    });
+    $("ul.setting-list a").click(function(){
+        if($(this).attr("data-action")=='about') {
+            document.querySelector('#about-modal').classList.add('is-shown');
+        }
+    });
+    $("#nav_menu>li").click(function(e){
+        $(this).siblings().removeClass("is-selected");
+        $(this).addClass("is-selected");
+        var targ=$(this).attr("data-section");
+        $("#mainframe").attr("src","./Views/"+targ+".html");
+        switch(targ){
+            case 'IMChat':
+                //$('.main-box>div').hide();
+                $('webview').addClass('hide');
+                $(".im-section").show();
+                break;
+            case 'OAPage':
+                //$('.main-box>div').hide();
+                $('webview').addClass('hide');
+                $(".im-section").hide();
+                $(".OA-section").show();
+                break;
+            default:
+                //$('.main-box>div').hide();
+                $('webview').removeClass('hide');
+                $(".im-section").hide();
+                $(".OA-section").hide();
+                //$('.web-view').show();
+                break;
+        }
+    });
+
+    $("#imgTransifrom").on('click',function(){
+        creatImg($("#txtInput").val());
+    });
+});
+
+    function creatImg(obj){
+        console.log('input str:',obj);
+        var img=nativeImg.createFromDataURL(obj);
+        let image = nativeImg.createFromPath(obj)
+        console.log('createFromPath:',image)
+        console.log('createFromDataURL:',img);
+        $("#imgTemp").attr("src",obj);
+        var smg={'sender':'系统','text':'测试图标','Img':obj};
+        _ipc.send('im-msg',smg);
+    }
+    
+
+//监听IM事件：
+_sdk.Event.on('CHAT.MSG_RECEIVED',function (data) {
+    console.log("----接收单聊信息----",data);
+    var msgReceiver=_sdk.Base.getNick(data.data.touid);
+    var msgSender=_sdk.Base.getNick(data.data.uid);
+    var imgUrl='./Images/lookme.jpg';
+    var msgStr='';
+    var msgType=data.data.msgs[0].type;
+    if(msgType==66 ||msgType==17){
+        msgStr='【附件】';
+    }else{
+        msgStr=data.data.msgs[0].msg;
+    }
+    var smg={'sender':msgSender,'text':msgStr,'Img':imgUrl};
+    _ipc.send('im-msg',smg);
+});
+_sdk.Event.on('TRIBE.MSG_RECEIVED',function (data) {
+    console.log("----接收到群组信息----",data);
+    var msgReceiver=_sdk.Base.getNick(data.data.touid);
+    var msgSender=_sdk.Base.getNick(data.data.uid);
+    var imgUrl="./Images/APP.png";
+    var msgStr='';
+    var msgType=data.data.msgs[0].type;
+    if(msgType==66 ||msgType==17){
+        msgStr='【附件】';
+    }else{
+        msgStr=data.data.msgs[0].msg;
+    }
+    var smg={'sender':msgSender,'text':msgStr,'Img':imgUrl};
+    _ipc.send('im-msg',smg);
+});
+_sdk.Event.on('START_RECEIVE_ALL_MSG',function (data) {
+    console.log("----消息监听----",data);
+    var _code=data.code;
+    switch(_code){
+        case 1000:
+            break;
+        case 1001:
+            IMLogin();
+            break;
+        default:
+            break;
+    }
+//        1000  接口调用成功
+//        1001  调用的接口需要登录，并且当前没有登录
+//        1002  登录超时
+//        1003  其他错误，返回的数据格式不正确,拿不到期望的数据
+//        1004  解析JSON字符串时发生错误
+//        1005  网络错误
+//        1006  登录状态下被踢下线
+//        1007  登录信息错误
+//        1008  已经登录，本地判断
+//        1009  没有新消息
+//        1010  调用接口参数错误
+//        1011  登录太频繁
+//        1012  已经登录，服务端判断
+//        1013  登录的用户名不存在
+//        1014  登录的密码错误
+});
+_sdk.Event.on('KICK_OFF',function(data){
+    console.log('Oh~my god,I am be fire.',data);
+});
+
+function IMLogout(){
+    //_sdk.Base.logout();//登出后，将不会收到任何消息，也无法再调用需要登录的接口
+    _sdk.Base.destroy();
+    _sdk=null;
+}
+function IMLogin(){
+    if(_sdk==null){_sdk=new WSDK();}
+    //Joney:23369251,334989980d8741e4859d1077ce294c7b,152531
+    //COCO:23369251,9302cd508ea24392a92389d2e7e8d216,825368
+    _sdk.Base.login({
+        uid:'878ccc32727a407d83e87f70628edc5a',
+        appkey:'23331917',
+        credential:'326345',
+        timeout: 5000,
+        success: function(data){
+            console.log('login success', data);
+            _sdk.Base.startListenAllMsg();
+        },
+        error: function(error){
+            console.log('login fail', error);
+        }
+    });
+}
+
+function SendIMmsg(obj){
+    _sdk.Chat.sendMsg({
+        touid:'99e4d97d3b654c77b4db55a8269e7636',
+        msg:obj,
+        success: function(data){
+            console.log('消息发送成功', data);
+        },
+        error: function(error){
+            console.log('消息发送失败', error);
+        }
+    });
+}
+
+  </script>
+  </body>
+</html>
