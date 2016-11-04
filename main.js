@@ -11,7 +11,7 @@ const debug = /--debug/.test(process.argv[2]);
 const nativeImg=electron.nativeImage;
 
 let mainWindow = null;
-var tray=null;
+let tray=null;
 
 app.on('window-all-closed', function() {
   if (process.platform != 'darwin') {
