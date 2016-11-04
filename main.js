@@ -19,7 +19,8 @@ app.on('window-all-closed', function() {
   }
 });
 app.on('ready', function() {
-  InitialWin();
+  InitWin();
+  initAppTray();
   ipc.on('win-show', function () {
     mainWindow.show();
     tray.setHighlightMode('selection')
@@ -29,7 +30,6 @@ app.on('ready', function() {
   });
   ipc.on('win-min', function () {
     mainWindow.minimize();
-
   });
   ipc.on('win-max', function () {
     if (mainWindow.isMaximized()) {
@@ -44,14 +44,14 @@ app.on('ready', function() {
   });
   ipc.on('im-msg',function(ev,obj){
     const iconPath=path.join(__dirname,'Images/lookme.jpg');//图标必须为本地资源
-
     var bloon={icon:obj.Img,title:obj.sender,content:obj.text};
     tray.displayBalloon(bloon);//冒泡提示
+    //tray.getBounds();
   });
-  TrayShow();
+  
 });
-//应用角标：
-function TrayShow(){
+//实例化应用角标：
+function initAppTray(){
   const iconPath=path.join(__dirname,'Images/Appx.png');
   tray=new Tray(iconPath);
   const contextMenu=Menu.buildFromTemplate([{
@@ -60,22 +60,27 @@ function TrayShow(){
       app.exit(0);
       tray.destroy();
     }
-  },
-    {label:'在线',type:'radio',checked:true},
-    {label:'隐身',type:'radio'},
-    {label:'离线'}
-]);
+    },
+      {label:'在线',type:'radio',checked:true},
+      {label:'隐身',type:'radio'},
+      {label:'离线'}
+  ]);
   tray.setToolTip('我的圈圈');
   tray.setContextMenu(contextMenu);
   tray.on('click',()=>{
     mainWindow.isVisible()?mainWindow.hide():mainWindow.show();
   });
-tray.on('show',()=>{
-  tray.setHighlightMode('always');
-});
-tray.on('hide',()=>{
-  tray.setHighlightMode('never');
-});
+  tray.on('show',()=>{
+    tray.setHighlightMode('always');
+  });
+  tray.on('hide',()=>{
+    tray.setHighlightMode('never');
+  });
+  tray.on('balloon-click',function(obj){
+    var bbool=obj.getBounds();
+    mainWindow.webContents.send('balloon-clk',bbool);
+  });
+
 }
 //单例模式：
 function makeSingleInstance () {
@@ -88,7 +93,7 @@ function makeSingleInstance () {
   })
 }
 //实例化窗体：
-function InitialWin(){
+function InitWin(){
   makeSingleInstance();
   // Create the browser window.
   var windowOptions = {

@@ -104,6 +104,9 @@
         layer.msg(obj);
         saySomething();
     });
+    _ipc.on('balloon-clk',function(e,obj){
+        console.log(obj);
+    });
     function winExit() {
         _ipc.send('win-exit');
     }
