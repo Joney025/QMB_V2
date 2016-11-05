@@ -89,7 +89,7 @@
     require('./Scripts/jquery-1.8.2');
     require('./Scripts/imports');
     require('./Scripts/ex-links');
-    require('./Scripts/JJComment');
+    require('./Scripts/JSCommon');
     require('./Scripts/layer/layer');
     require('./Scripts/layer/extend/layer.ext');
     require('./Scripts/nav-menu');
@@ -117,8 +117,9 @@
         _ipc.send('win-max');
     }
     function saySomething(){
-        var smg={'sender':'system','text':'您有n条未处理消息！','Img':'./Images/lookme.jpg'};
+        var smg={'sender':'系统消息','text':'您有n条未处理消息！','Img':'./Images/lookme.jpg'};
         _ipc.send('im-msg',smg);
+        
     }
 
 $(document).ready(function(){
@@ -186,7 +187,25 @@ $(document).ready(function(){
         var smg={'sender':'系统','text':'测试图标','Img':obj};
         _ipc.send('im-msg',smg);
     }
-    
+    function showNotice(obj){
+      var options={
+          dir:'auto',
+          lang:'',
+          body:'',
+          tag:'',
+          icon:'',
+          renotify:false,
+          silent:false,
+          noscreen:false,
+          sticky:false,
+          data:null
+        };
+      var notice=new Notification('消息',{icon:obj.Img,tag:'chat_'+obj.sender,body:obj.text,data:{'id':obj.sender,'type':obj.msgType}});
+            notice.onclick=function(){
+              console.log(this.data)
+              _ipc.send('win-show');
+            }
+    }
 
 //监听IM事件：
 _sdk.Event.on('CHAT.MSG_RECEIVED',function (data) {
@@ -201,8 +220,9 @@ _sdk.Event.on('CHAT.MSG_RECEIVED',function (data) {
     }else{
         msgStr=data.data.msgs[0].msg;
     }
-    var smg={'sender':msgSender,'text':msgStr,'Img':imgUrl};
-    _ipc.send('im-msg',smg);
+    //var smg={'sender':msgSender,'text':msgStr,'Img':imgUrl};
+    //_ipc.send('im-msg',smg);
+    showNotice({'Img':imgUrl,'sender':msgSender,'msgType':0,'text':msgStr});
 });
 _sdk.Event.on('TRIBE.MSG_RECEIVED',function (data) {
     console.log("----接收到群组信息----",data);
@@ -216,8 +236,9 @@ _sdk.Event.on('TRIBE.MSG_RECEIVED',function (data) {
     }else{
         msgStr=data.data.msgs[0].msg;
     }
-    var smg={'sender':msgSender,'text':msgStr,'Img':imgUrl};
-    _ipc.send('im-msg',smg);
+    //var smg={'sender':msgSender,'text':msgStr,'Img':imgUrl};
+    //_ipc.send('im-msg',smg);
+    showNotice({'Img':imgUrl,'sender':msgSender,'msgType':1,'text':msgStr});
 });
 _sdk.Event.on('START_RECEIVE_ALL_MSG',function (data) {
     console.log("----消息监听----",data);
@@ -248,7 +269,7 @@ _sdk.Event.on('START_RECEIVE_ALL_MSG',function (data) {
 //        1014  登录的密码错误
 });
 _sdk.Event.on('KICK_OFF',function(data){
-    console.log('Oh~my god,I am be fire.',data);
+    console.log('kick off msg.',data);
 });
 
 function IMLogout(){

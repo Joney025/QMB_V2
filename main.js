@@ -21,7 +21,7 @@ app.on('window-all-closed', function() {
 app.on('ready', function() {
   InitWin();
   initAppTray();
-  ipc.on('win-show', function () {
+  ipc.on('win-show', function (ev,obj) {
     mainWindow.show();
     tray.setHighlightMode('selection')
   });
