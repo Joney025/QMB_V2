@@ -1,17 +1,34 @@
 ﻿'use strict';
 const electron = require('electron');
+const fs=require('fs');
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 const ipc=electron.ipcMain;
 const path = require('path');
 const Tray = electron.Tray;
 const Menu=electron.Menu;
-const ipcCmd = require('electron').ipcRenderer;
-const debug = /--debug/.test(process.argv[2]);
+const dialog = require('electron').dialog;
+//const AutoLaunch=require('auto-launch');
 const nativeImg=electron.nativeImage;
+
 
 let mainWindow = null;
 let tray=null;
+let webContents = null;
+
+//let appAutoLauncher=new AutoLaunch({
+//  name:'QMB'//this is the app name.
+//  //,path:app.getAppPath()
+//});
+//appAutoLauncher.isEnabled((enabled)=>{
+//  if(enabled){return;}
+//appAutoLauncher.enable((err)=>{
+//  if(err){
+//  SystemLoger(err);
+//  //throw(err);
+//}
+//});
+//});
 
 app.on('window-all-closed', function() {
   if (process.platform != 'darwin') {
@@ -48,7 +65,7 @@ app.on('ready', function() {
     tray.displayBalloon(bloon);//冒泡提示
     //tray.getBounds();
   });
-  
+
 });
 //实例化应用角标：
 function initAppTray(){
@@ -94,33 +111,72 @@ function makeSingleInstance () {
 }
 //实例化窗体：
 function InitWin(){
-  makeSingleInstance();
-  // Create the browser window.
-  var windowOptions = {
-    width:850,
-    height:700,
-    minWidth:850,
-    minHeight:700,
-    //icon:'Images/Appx.png',
-    //title: app.getName(),
-    //resizable:false,
-    hasShadow:true,
-    transparent:false,
-    frame:false
-    //webPreferences:{nodeIntegration:false}
+  try{
+    makeSingleInstance();
+    // Create the browser window.
+    var windowOptions = {
+      width:850,
+      height:700,
+      minWidth:850,
+      minHeight:700,
+      //icon:'Images/Appx.png',
+      //title: app.getName(),
+      //resizable:false,
+      hasShadow:true,
+      transparent:false,
+      frame:false
+      //webPreferences:{nodeIntegration:false}
+    }
+
+    mainWindow = new BrowserWindow(windowOptions);
+
+    mainWindow.loadURL('file://' + __dirname + '/Views/login.html');
+    webContents=mainWindow.webContents;
+    mainWindow.webContents.openDevTools();//显示调试工具
+
+    mainWindow.on('closed', function() {
+      mainWindow = null;
+    });
+    //By:joney.
+    mainWindow.on('resize', function() {
+      var winSize = mainWindow.getSize();
+      webContents.send('resetIMFrame', winSize + '');
+    })
+    //By:joney.
+    webContents.on('did-finish-load', function() {
+      var winSize = mainWindow.getSize();
+      webContents.send('resetIMFrame', winSize + '');
+    });
+    webContents.on('did-finish-load',function(){
+      webContents.send('ping', '欢迎使用我的圈圈办公助手');
+    });
+  }catch(ex){
+    SystemLoger(ex);
   }
-
-  mainWindow = new BrowserWindow(windowOptions);
-
-  mainWindow.loadURL('file://' + __dirname + '/index.html');
-
-  mainWindow.webContents.openDevTools();//显示调试工具
-
-  mainWindow.on('closed', function() {
-    mainWindow = null;
-  });
-  mainWindow.webContents.on('did-finish-load',function(){
-    mainWindow.webContents.send('ping', '欢迎使用我的圈圈办公助手');
-  });
 }
+
+//系统日志：BY Joney.
+function SystemLoger(msgInfo){
+  try{
+    var filePath=path.join(__dirname,'/log/runninglog.log');
+    fs.exists(filePath,(exists)=>{
+      if(!exists){
+      fs.mkdir(path.join(__dirname,'/log'),(err)=>{});
+    }
+  });
+  if(true){
+    var logInfo='\r\n'+new Date().toString()+'\r\n----------'+msgInfo;
+    fs.appendFile(filePath,logInfo,'utf8',function(err){
+      //if(err){throw err;}
+    });
+  }else{
+    fs.readFileSync(path.join(__dirname,'runninglog'),'utf8',function(err,data){
+      //if(err){throw err;}
+    });
+  }
+}catch(ex){
+  throw ex;
+}
+}
+
 

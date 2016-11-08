@@ -75,7 +75,25 @@
           </div>
         </div>
         <div class="main-box row">
-            <div class="web-view"><webview id="mainframe" src="home.html" nodeintegration="on" plugins="on" autosize="on" style="display:flex;position:fixed;height:100%;width:100%;"></webview></div>
+          <webview id="mainframe" src="home.html" nodeintegration="on" plugins="on" autosize="on" ></webview>
+          <div id="Calendar" style=" width:540px;margin:0 auto;position:absolute;top:10%;left:35%;padding:0;display:block;">
+            <script type="text/javascript">
+              window.op_calendar2 = {
+                isFestMode: (0) ? true : false, currentFest: 0, festival: [
+                  { "key": "元旦", "title": "2011年元旦放假安排", "desc": "1月1日至3日放假3天，无调休。", "showStartDay": "2011/01/01", "showEndDay": "2011/01/31" },
+                  { "key": "春节", "title": "2011年春节放假安排", "desc": "2月2日至8日放假7天，1月30日（星期日）、2月12日（星期六）上班。", "showStartDay": "2011/01/30", "showEndDay": "2011/02/26" },
+                  { "key": "清明节", "title": "2011年清明节放假安排", "desc": "4月3日至5日放假3天，2日（星期六）上班。", "showStartDay": "2011/04/01", "showEndDay": "2011/04/30" },
+                  { "key": "劳动节", "title": "2011年劳动节放假安排", "desc": "4月30日至5月2日放假3天，无调休。", "showStartDay": "2011/04/30", "showEndDay": "2011/05/28" },
+                  { "key": "端午节", "title": "2011年端午节放假安排", "desc": "6月4日至6日放假3天，无调休。", "showStartDay": "2011/06/01", "showEndDay": "2011/06/30" },
+                  { "key": "中秋节", "title": "2011年中秋节放假安排", "desc": "9月10日至12日放假3天，无调休。", "showStartDay": "2011/09/01", "showEndDay": "2011/09/30" },
+                  { "key": "国庆节", "title": "2011年国庆节放假安排", "desc": "10月1日至7日放假7天，8日、9日（星期六、日）上班。", "showStartDay": "2011/10/01", "showEndDay": "2011/10/31" },
+                  { "key": "2014年国庆节", "title": "2014年国庆节放假安排", "desc": "10月1日至7日放假7天，8日、9日（星期六、日）上班。", "showStartDay": "2014/10/01", "showEndDay": "2014/10/31" }
+                ]
+              };
+            </script>
+            <script src="./Scripts/bdop_calendar.js" type="text/javascript"></script>
+          </div>
+          <div id="cacheLog" style="position:fixed;top:0;left:0;"></div>
         </div>
       </div>
   </div>
@@ -89,225 +107,10 @@
     require('./Scripts/jquery-1.8.2');
     require('./Scripts/imports');
     require('./Scripts/ex-links');
-    require('./Scripts/JSCommon');
     require('./Scripts/layer/layer');
     require('./Scripts/layer/extend/layer.ext');
     require('./Scripts/nav-menu');
-    require('./Scripts/IMChat');
     require('./Scripts/IMSDK');
-
-    const {shell}=require('electron');
-    const _ipc = require('electron').ipcRenderer;
-    const nativeImg=require('electron').nativeImage;
-
-    _ipc.on('ping',function(e,obj){
-        layer.msg(obj);
-        saySomething();
-    });
-    _ipc.on('balloon-clk',function(e,obj){
-        console.log(obj);
-    });
-    function winExit() {
-        _ipc.send('win-exit');
-    }
-    function winMin() {
-        _ipc.send('win-min');
-    }
-    function winMax() {
-        _ipc.send('win-max');
-    }
-    function saySomething(){
-        var smg={'sender':'系统消息','text':'您有n条未处理消息！','Img':'./Images/lookme.jpg'};
-        _ipc.send('im-msg',smg);
-        
-    }
-
-$(document).ready(function(){
-    console.log('jquery is ready.');
-    $(".clo-ose").click(function(){
-        winExit();
-    });
-    $(".clo-min").click(function(){
-        winMin();
-    });
-    $(".clo-max").click(function(){
-        winMax();
-    });
-    IMLogin();
-
-    $(".sys-setting").toggle(function(){
-        $(".setting-list").addClass("fo-show");
-    },function(){
-        $(".setting-list").removeClass("fo-show");
-    });
-    $("ul.setting-list a").click(function(){
-        if($(this).attr("data-action")=='about') {
-            document.querySelector('#about-modal').classList.add('is-shown');
-        }
-    });
-    $("#nav_menu>li").click(function(e){
-        $(this).siblings().removeClass("is-selected");
-        $(this).addClass("is-selected");
-        var targ=$(this).attr("data-section");
-        $("#mainframe").attr("src","./Views/"+targ+".html");
-        switch(targ){
-            case 'IMChat':
-                //$('.main-box>div').hide();
-                $('webview').addClass('hide');
-                $(".im-section").show();
-                break;
-            case 'OAPage':
-                //$('.main-box>div').hide();
-                $('webview').addClass('hide');
-                $(".im-section").hide();
-                $(".OA-section").show();
-                break;
-            default:
-                //$('.main-box>div').hide();
-                $('webview').removeClass('hide');
-                $(".im-section").hide();
-                $(".OA-section").hide();
-                //$('.web-view').show();
-                break;
-        }
-    });
-
-    $("#imgTransifrom").on('click',function(){
-        creatImg($("#txtInput").val());
-    });
-});
-
-    function creatImg(obj){
-        console.log('input str:',obj);
-        var img=nativeImg.createFromDataURL(obj);
-        let image = nativeImg.createFromPath(obj)
-        console.log('createFromPath:',image)
-        console.log('createFromDataURL:',img);
-        $("#imgTemp").attr("src",obj);
-        var smg={'sender':'系统','text':'测试图标','Img':obj};
-        _ipc.send('im-msg',smg);
-    }
-    function showNotice(obj){
-      var options={
-          dir:'auto',
-          lang:'',
-          body:'',
-          tag:'',
-          icon:'',
-          renotify:false,
-          silent:false,
-          noscreen:false,
-          sticky:false,
-          data:null
-        };
-      var notice=new Notification('消息',{icon:obj.Img,tag:'chat_'+obj.sender,body:obj.text,data:{'id':obj.sender,'type':obj.msgType}});
-            notice.onclick=function(){
-              console.log(this.data)
-              _ipc.send('win-show');
-            }
-    }
-
-//监听IM事件：
-_sdk.Event.on('CHAT.MSG_RECEIVED',function (data) {
-    console.log("----接收单聊信息----",data);
-    var msgReceiver=_sdk.Base.getNick(data.data.touid);
-    var msgSender=_sdk.Base.getNick(data.data.uid);
-    var imgUrl='./Images/lookme.jpg';
-    var msgStr='';
-    var msgType=data.data.msgs[0].type;
-    if(msgType==66 ||msgType==17){
-        msgStr='【附件】';
-    }else{
-        msgStr=data.data.msgs[0].msg;
-    }
-    //var smg={'sender':msgSender,'text':msgStr,'Img':imgUrl};
-    //_ipc.send('im-msg',smg);
-    showNotice({'Img':imgUrl,'sender':msgSender,'msgType':0,'text':msgStr});
-});
-_sdk.Event.on('TRIBE.MSG_RECEIVED',function (data) {
-    console.log("----接收到群组信息----",data);
-    var msgReceiver=_sdk.Base.getNick(data.data.touid);
-    var msgSender=_sdk.Base.getNick(data.data.uid);
-    var imgUrl="./Images/APP.png";
-    var msgStr='';
-    var msgType=data.data.msgs[0].type;
-    if(msgType==66 ||msgType==17){
-        msgStr='【附件】';
-    }else{
-        msgStr=data.data.msgs[0].msg;
-    }
-    //var smg={'sender':msgSender,'text':msgStr,'Img':imgUrl};
-    //_ipc.send('im-msg',smg);
-    showNotice({'Img':imgUrl,'sender':msgSender,'msgType':1,'text':msgStr});
-});
-_sdk.Event.on('START_RECEIVE_ALL_MSG',function (data) {
-    console.log("----消息监听----",data);
-    var _code=data.code;
-    switch(_code){
-        case 1000:
-            break;
-        case 1001:
-            IMLogin();
-            break;
-        default:
-            break;
-    }
-//        1000  接口调用成功
-//        1001  调用的接口需要登录，并且当前没有登录
-//        1002  登录超时
-//        1003  其他错误，返回的数据格式不正确,拿不到期望的数据
-//        1004  解析JSON字符串时发生错误
-//        1005  网络错误
-//        1006  登录状态下被踢下线
-//        1007  登录信息错误
-//        1008  已经登录，本地判断
-//        1009  没有新消息
-//        1010  调用接口参数错误
-//        1011  登录太频繁
-//        1012  已经登录，服务端判断
-//        1013  登录的用户名不存在
-//        1014  登录的密码错误
-});
-_sdk.Event.on('KICK_OFF',function(data){
-    console.log('kick off msg.',data);
-});
-
-function IMLogout(){
-    //_sdk.Base.logout();//登出后，将不会收到任何消息，也无法再调用需要登录的接口
-    _sdk.Base.destroy();
-    _sdk=null;
-}
-function IMLogin(){
-    if(_sdk==null){_sdk=new WSDK();}
-    //Joney:23369251,334989980d8741e4859d1077ce294c7b,152531
-    //COCO:23369251,9302cd508ea24392a92389d2e7e8d216,825368
-    _sdk.Base.login({
-        uid:'878ccc32727a407d83e87f70628edc5a',
-        appkey:'23331917',
-        credential:'326345',
-        timeout: 5000,
-        success: function(data){
-            console.log('login success', data);
-            _sdk.Base.startListenAllMsg();
-        },
-        error: function(error){
-            console.log('login fail', error);
-        }
-    });
-}
-
-function SendIMmsg(obj){
-    _sdk.Chat.sendMsg({
-        touid:'99e4d97d3b654c77b4db55a8269e7636',
-        msg:obj,
-        success: function(data){
-            console.log('消息发送成功', data);
-        },
-        error: function(error){
-            console.log('消息发送失败', error);
-        }
-    });
-}
 
   </script>
   </body>

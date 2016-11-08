@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body{
+            margin:0;
+            padding:0;
+            height: 100%;
+            width:100%;
+            position:fixed;
+
+        }
+        .main{
+            position:relative;
+            margin:0;
+            padding:0;
+            display:block;
+            width:100%;
+            height:100%;
+            -webkit-app-region: drag;
+            background: url('../Images/loginBG.png') no-repeat scroll 0 0 #fff;
+        }
+.loginBox{
+    position:absolute;
+    border:1px solid #ccc;
+    border-radius:5px;
+    box-shadow:3px 3px 8px #ccc;
+    -webkit-app-region: no-drag;
+    width:300px;
+    height:200px;
+    top: 25%;
+    right: 10%;
+    background:#fff;
+}
+    </style>
+</head>
+<body>
+    <div class="main">
+        <div class="loginBox">
+            <ul>
+                <li><span>LoginID:</span><input type="text" class="code"/></li>
+                <li><span>Password:</span><input type="password" class="pwd"/></li>
+                <li><span></span><input type="button" class="btn" value="Login"/></li>
+            </ul>
+        </div>
+    </div>
+<script>
+    require('../Scripts/jquery-1.8.2');
+    const path = require('path');
+$(function(){
+    $('.btn').on('click',function(){
+        window.location.href = path.join('file://', __dirname, '../index.html');
+    });
+})
+</script>
+</body>
+</html>

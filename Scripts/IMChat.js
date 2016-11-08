@@ -1,13 +1,24 @@
 ﻿/**
-Top IM JS
-By:Joney
-Date:2016年5月18日10:10:52
-**/
+ Top IM JS
+ By:Joney
+ Date:2016年5月18日10:10:52
+ **/
 'use strict';
-//const ipCmd =null;//require('electron').ipcRenderer;
+const http=require('http');
+
+var localCache=localStorage.getItem('IM_INFO');
+//console.log(localCache);
+//Joney:23369251,334989980d8741e4859d1077ce294c7b,152531
+//COCO:23369251,9302cd508ea24392a92389d2e7e8d216,825368
 var AppKey ="23331917";// $("#IMAppKey").val();//23369251,23331917
 var ImUID ="878ccc32727a407d83e87f70628edc5a";// $("#IMUID").val();//当前用户IMID //878ccc32727a407d83e87f70628edc5a,334989980d8741e4859d1077ce294c7b
 var ImSecret ="326345";// $("#IMSecret").val();//326345,152531,
+if(localCache){
+    var cacheData=JSON.parse(localCache);
+    //AppKey=cacheData.ImAppKey;
+    //ImUID=cacheData.ImUserID;
+    //ImSecret=cacheData.ImPwd;
+}
 var sdk =_sdk;
 var currentUserID = $("#hd_UserID").val();//当前用户标识ID
 var currentUserName = $("#hd_UserName").val();//当前用户名称
@@ -16,6 +27,7 @@ var docUrl = $("#hd_FileDownLoadUrl").val();
 var _talkID = "";//会话iD(通话对象ID,讨论组ID)
 var msgData = { "UserSign": "", "UserName": "","From":"","ToUserSign":"", "To": "", "ToName": "", "Msg": "", "CreateDate": "", "Hint": "", "HintText": "", "MediaType": "", "FileName": "", "Size": "", "Path": "", "DataSource": "", "BaseEntry": "", "BaseType": "", "SendDate": "" };
 var elem = {};//窗体元素集
+elem.TalkType=$("#TalkType");
 elem.TalkOne = $("#talkingBox");//对话窗口one to one.
 elem.TalkOneID = $("#talkingBox #TalkID");//对话窗口ID
 elem.TalkOneTitle = $("#talkingBox #TalkTitle");//对话窗口标题
@@ -30,56 +42,55 @@ elem.TalkMsgPageIndex = $("#talkingBox #curpage");//信息行当前页码one
 elem.TalkMsgTotalPage = $("#talkingBox #totpage");
 
 var htmTitle = "<a href='javascript:' title='{0}'>{0}</a>";//标题元素
-var htmPic = "<img src='Images/IMIcon/uface.jpg?UserSign={0}' class='img-80px {1}' height='80' />";//头像元素
-var htmPicDf = "<img src='Images/IMIcon/dfUser.png?docEntry={0}' class='img-80px' height='80' />";//头像元素LoadIMGroupImageBase64
+var htmPic = "<img src='./Images/IMicon/uface.jpg?UserSign={0}' class='img-80px {1}' height='80' />";//头像元素
+var htmPicDf = "<img src='./Images/IMicon/dfUser.png?docEntry={0}' class='img-80px' height='80' />";//头像元素LoadIMGroupImageBase64
 var waitingHtm = "<li id='{0}'><div class='waitingBox'><div class='waitingBar'></div><div class='lb_tip'>{1}</div></div></li>";//进度条
 //新 会话列表：0=id,1=usersign,2=名称，3=短消息，4=未读数,5=是否红点提示（tipBox）
-var htmNewLineOne = "<li id='{0}_{1}' data-im='{0}_{1}' onclick='showTalkFormBoxO(this);'><div><img src='Images/IMIcon/uface.jpg?UserSign={0}' title='头像' ></div><p><a href='#' title='名称'>{2}</a></p><p title='短消息' class='member_msg'>{3}</p><div id='tipCount' class='{5}' title='未读消息数'>{4}</div></li>";
-var htmNewLineGroup = "<li id='{0}_{1}' data-im='{0}_{1}' onclick='showTalkFormBoxG(this);'><div><img src='Images/IMIcon/uface.jpg?docEntry={0}' title='头像' ></div><p><a href='#' title='名称'>{2}</a></p><p title='短消息' class='member_msg'>{3}</p><div id='tipCount' class='{5}' title='未读消息数'>{4}</div></li>";
-//新会话行-个人对话
-var htmNewLineO = "<li id='{0}' onclick='showTalkFormBoxO(this);'><img src='Images/IMIcon/uface.jpg?UserSign={1}' width='30' height='30'><a href='#' id='{2}' title='{3}'>{4}</a><div id='tipCount'>{5}</div></li>";
+var htmNewLineOne = "<li id='{0}_{1}' data-im='{0}_{1}' onclick='showTalkFormBoxO(this);'><div><img src='./Images/IMicon/uface.jpg?UserSign={0}' title='头像' ></div><p><a href='#' title='名称'>{2}</a></p><p title='短消息' class='member_msg'>{3}</p><div id='tipCount' class='{5}' title='未读消息数'>{4}</div></li>";
+//0：uid,1:imid,2:dialog type,3:名称，4：时间，5：短消息，6：未读数量,7:是否标识红点 ‘tipBox’
+var htmNewLine='<li id="{0}_{1}" data-im="{0}_{1}" data-tp="{2}" onclick="showTalkFrame(this);"><div><img src="./Images/IMicon/dfGroup.png?docEntry=1901141313" title="头像"></div><p class="member-title"><a class="msg-snick" title="名称">{3}</a><a class="msg-stime" title="发送时间">{4}</a></p><p title="短消息" class="member_msg">{5}</p><div id="tipCount" class="{7}" title="未读消息数">{6}</div></li>';
 //客服行
-var htmNewLineCG = "<li id='{0}' onclick='showTalkFormBoxCG(this);'><img src='Images/IMIcon/uface.jpg?UserSign={1}' width='30' height='30'><a href='#' id='{2}' title='{3}'>{4}</a><div id='tipCount'>{5}</div></li>";
+var htmNewLineCG = "<li id='{0}' onclick='showTalkFormBoxCG(this);'><img src='./Images/IMicon/uface.jpg?UserSign={1}' width='30' height='30'><a href='#' id='{2}' title='{3}'>{4}</a><div id='tipCount'>{5}</div></li>";
 //新会话行-讨论组
-var htmNewLineG = "<li id='{0}' onclick='showTalkFormBoxG(this);'><img src='Images/IMIcon/uface.jpg?docEntry={1}' width='30' height='30'><a href='#' id='{2}' title='{3}'>{4}</a><div id='tipCount'>{5}</div></li>";
+var htmNewLineG = "<li id='{0}' onclick='showTalkFormBoxG(this);'><img src='./Images/IMicon/uface.jpg?docEntry={1}' width='30' height='30'><a href='#' id='{2}' title='{3}'>{4}</a><div id='tipCount'>{5}</div></li>";
 //附件信息行
-var htmMsgFileLine = "<li class='msgAlign-right'><span style='color:#ccc;display:block'>{0}</span><div class='message-content rightMsg'><span class='message-content-text'><span class='sp-card'></span><span>{1}</span><span style='float:none;margin:0 0 0 10px;'>{2}<a href='{3}{4}' target='_blank' style='margin:0 5px;border-bottom: 1px solid #555;'>下载</a></span></span><span class='icon-arrows'>&nbsp;</span></div><div class='uPic'><a><img src='Images/IMIcon/uface.jpg?UserSign={5}' width='30' height='30'/></a></div></li>";
+var htmMsgFileLine = "<li class='msgAlign-right'><span style='color:#ccc;display:block'>{0}</span><div class='message-content rightMsg'><span class='message-content-text'><span class='sp-card'></span><span>{1}</span><span style='float:none;margin:0 0 0 10px;'>{2}<a href='{3}{4}' target='_blank' style='margin:0 5px;border-bottom: 1px solid #555;'>下载</a></span></span><span class='icon-arrows'>&nbsp;</span></div><div class='uPic'><a><img src='./Images/IMicon/uface.jpg?UserSign={5}' width='30' height='30'/></a></div></li>";
 //图片信息行
-var htmMsgImgLine = "<li class='msgAlign-right'><span style='color:#ccc;display:block'>{0}</span><div class='message-content rightMsg'><span class='message-content-text'><a rel='{1}{2}' toptions='overlayClose=1' class='msgImg'><img src='{1}{3}' data-action='zoom' height='100'/></a></span><span class='icon-arrows'>&nbsp;</span></div><div class='uPic' style='margin:0px'><a><img src='Images/IMIcon/uface.jpg?UserSign={4}' width='30' height='30'/></a></div></li>";
+var htmMsgImgLine = "<li class='msgAlign-right'><span style='color:#ccc;display:block'>{0}</span><div class='message-content rightMsg'><span class='message-content-text'><a rel='{1}{2}' toptions='overlayClose=1' class='msgImg'><img src='{1}{3}' data-action='zoom' height='100'/></a></span><span class='icon-arrows'>&nbsp;</span></div><div class='uPic' style='margin:0px'><a><img src='./Images/IMicon/uface.jpg?UserSign={4}' width='30' height='30'/></a></div></li>";
 //影音媒体（视频，声音）:0=名称，1=2=地址，3=UserSign
-var htmMsgMediaLine = "<li class='msgAlign-right'><span style='color:#ccc;display:block'>{0}</span><div class='message-content rightMsg'><span class='message-content-text'><a rel='{1}{2}' onclick='playMovieMedia(this);' class='msgMedia'><img src='/Images/icon-movie.png' data-action='zoom' height='20'/></a></span><span class='icon-arrows'>&nbsp;</span></div><div class='uPic' style='margin:0px'><a><img src='Images/IMIcon/uface.jpg?UserSign={3}' width='30' height='30'/></a></div></li>";
-var htmMsgSoundLine = "<li class='msgAlign-right'><span style='color:#ccc;display:block'>{0}</span><div class='message-content rightMsg'><span class='message-content-text'><a rel='{1}{2}' onclick='playSoundMedia(this);' class='msgMedia'><img src='/Images/icon-sound.png' data-action='zoom' height='20'/><em>你收到一个语音消息，可在手机上查看。</em></a></span><span class='icon-arrows'>&nbsp;</span></div><div class='uPic' style='margin:0px'><a><img src='Images/IMIcon/uface.jpg?UserSign={3}' width='30' height='30'/></a></div></li>";
+var htmMsgMediaLine = "<li class='msgAlign-right'><span style='color:#ccc;display:block'>{0}</span><div class='message-content rightMsg'><span class='message-content-text'><a rel='{1}{2}' onclick='playMovieMedia(this);' class='msgMedia'><img src='./Images/IMicon/icon-movie.png' data-action='zoom' height='20'/></a></span><span class='icon-arrows'>&nbsp;</span></div><div class='uPic' style='margin:0px'><a><img src='./Images/IMicon/uface.jpg?UserSign={3}' width='30' height='30'/></a></div></li>";
+var htmMsgSoundLine = "<li class='msgAlign-right'><span style='color:#ccc;display:block'>{0}</span><div class='message-content rightMsg'><span class='message-content-text'><a rel='{1}{2}' onclick='playSoundMedia(this);' class='msgMedia'><img src='./Images/IMicon/icon-sound.png' data-action='zoom' height='20'/><em>你收到一个语音消息，可在手机上查看。</em></a></span><span class='icon-arrows'>&nbsp;</span></div><div class='uPic' style='margin:0px'><a><img src='./Images/IMicon/uface.jpg?UserSign={3}' width='30' height='30'/></a></div></li>";
 var htmError = "<li class='im-unline'><span style='color:red;heigth:20px;line-height:20px;text-align:center;display:block;'>通讯连接失败,请稍后再试.</br>{0}</span></li>";//通讯错误提示
 //文本信息行
-var htmMsgLine = "<li class='msgAlign-right'><span class='msgline-stime'>{0}</span><div class='message-content rightMsg'><span class='message-content-text'>{1}</span><span class='icon-arrows'>&nbsp;</span></div><div class='uPic'><a><img src='Images/IMIcon/uface.jpg?UserSign={2}' width='30' height='30'/></a></div></li>";
-var htmMsgLine_unsend = "<li class='msgAlign-right'><span style='color:#ccc;display:block'>{0}</span><div class='message-content rightMsg unsend'><span class='message-content-text'>{1}</span><span class='icon-arrows'>&nbsp;</span></div><div class='uPic'><a><img src='Images/IMIcon/uface.jpg?UserSign={2}' width='30' height='30'/></a></div></li>";
+var htmMsgLine = "<li class='msgAlign-right'><span class='msgline-stime'>{0}</span><div class='message-content rightMsg'><span class='message-content-text'>{1}</span><span class='icon-arrows'>&nbsp;</span></div><div class='uPic'><a><img src='./Images/IMicon/uface.jpg?UserSign={2}' width='30' height='30'/></a></div></li>";
+var htmMsgLine_unsend = "<li class='msgAlign-right'><span style='color:#ccc;display:block'>{0}</span><div class='message-content rightMsg unsend'><span class='message-content-text'>{1}</span><span class='icon-arrows'>&nbsp;</span></div><div class='uPic'><a><img src='./Images/IMicon/uface.jpg?UserSign={2}' width='30' height='30'/></a></div></li>";
 
 //对方附件信息行：0=UID,1=人名，2=时间，3=文件名，4=服务器路径，5=服务器文件名
-var htmMsgFileLineL = "<li class='msgAlign-left'><div class='uPic-left'><a><img src='Images/IMIcon/uface.jpg?UserSign={0}' width='30' height='30'/></a></div><div style='padding:0 35px;'><span class='msgline-snick' title='发送人'>{1}</span><span style='color:#ccc;margin:0 0 0 5px;' title='时间'>{2}</span></div><div class='message-content leftMsg'><span class='icon-arrows-left'>&nbsp;</span><span class='message-content-text'><span class='sp-card'></span><span title='文件名'>{3}</span><span style='float:none;margin:0 0 0 10px;' title='文件大小'>{4}<a href='{5}{6}' title='路径' target='_blank' style='margin:0 5px;border-bottom: 1px solid #555;'>下载</a></span></span></div></li>";
+var htmMsgFileLineL = "<li class='msgAlign-left'><div class='uPic-left'><a><img src='./Images/IMicon/uface.jpg?UserSign={0}' width='30' height='30'/></a></div><div style='padding:0 35px;'><span class='msgline-snick' title='发送人'>{1}</span><span class='msgline-stime' style='margin:0 0 0 5px;' title='时间'>{2}</span></div><div class='message-content leftMsg'><span class='icon-arrows-left'>&nbsp;</span><span class='message-content-text'><span class='sp-card'></span><span title='文件名'>{3}</span><span style='float:none;margin:0 0 0 10px;' title='文件大小'>{4}<a href='{5}{6}' title='路径' target='_blank' style='margin:0 5px;border-bottom: 1px solid #555;'>下载</a></span></span></div></li>";
 //对方图片信息行
-var htmMsgImgLineL = "<li class='msgAlign-left'><div class='uPic-left' style='margin:0px'><a><img src='Images/IMIcon/uface.jpg?UserSign={0}' width='30' height='30'/></a></div><div style='padding:0 35px;'><span>{1}</span><span style='color:#ccc;margin:0 0 0 5px;'>{2}</span></div><div class='message-content leftMsg'><span class='icon-arrows-left'>&nbsp;</span><span class='message-content-text'><a rel='{3}{4}' toptions='overlayClose=1' class='msgImg'><img src='{3}{5}' data-action='zoom' height='100'/></a></span></div></li>";
+var htmMsgImgLineL = "<li class='msgAlign-left'><div class='uPic-left' style='margin:0px'><a><img src='./Images/IMicon/uface.jpg?UserSign={0}' width='30' height='30'/></a></div><div style='padding:0 35px;'><span>{1}</span><span class='msgline-stime' style='margin:0 0 0 5px;'>{2}</span></div><div class='message-content leftMsg'><span class='icon-arrows-left'>&nbsp;</span><span class='message-content-text'><a rel='{3}{4}' toptions='overlayClose=1' class='msgImg'><img src='{3}{5}' data-action='zoom' height='100'/></a></span></div></li>";
 //对方发送的影音媒体
-var htmMsgMediaLineL = "<li class='msgAlign-left'><div class='uPic-left' style='margin:0px'><a><img src='Images/IMIcon/uface.jpg?UserSign={0}' width='30' height='30'/></a></div><div style='padding:0 35px;'><span>{1}</span><span style='color:#ccc;margin:0 0 0 5px;'>{2}</span></div><div class='message-content leftMsg'><span class='icon-arrows-left'>&nbsp;</span><span class='message-content-text'><a rel='{3}{4}' onclick='playMovieMedia(this);' class='msgMedia'><img src='/Images/icon-movie.png' data-action='zoom' height='20'/></a></span></div></li>";
-var htmMsgSoundLineL = "<li class='msgAlign-left'><div class='uPic-left' style='margin:0px'><a><img src='Images/IMIcon/uface.jpg?UserSign={0}' width='30' height='30'/></a></div><div style='padding:0 35px;'><span>{1}</span><span style='color:#ccc;margin:0 0 0 5px;'>{2}</span></div><div class='message-content leftMsg'><span class='icon-arrows-left'>&nbsp;</span><span class='message-content-text'><a rel='{3}{4}' onclick='playSoundMedia(this);' class='msgMedia'><img src='/Images/icon-sound.png' data-action='zoom' height='20'/><em>你收到一个语音消息，可在手机上查看。</em></a></span></div></li>";
+var htmMsgMediaLineL = "<li class='msgAlign-left'><div class='uPic-left' style='margin:0px'><a><img src='./Images/IMicon/uface.jpg?UserSign={0}' width='30' height='30'/></a></div><div style='padding:0 35px;'><span>{1}</span><span class='msgline-stime' style='margin:0 0 0 5px;'>{2}</span></div><div class='message-content leftMsg'><span class='icon-arrows-left'>&nbsp;</span><span class='message-content-text'><a rel='{3}{4}' onclick='playMovieMedia(this);' class='msgMedia'><img src='./Images/IMicon/icon-movie.png' data-action='zoom' height='20'/></a></span></div></li>";
+var htmMsgSoundLineL = "<li class='msgAlign-left'><div class='uPic-left' style='margin:0px'><a><img src='./Images/IMicon/uface.jpg?UserSign={0}' width='30' height='30'/></a></div><div style='padding:0 35px;'><span>{1}</span><span class='msgline-stime' style='margin:0 0 0 5px;'>{2}</span></div><div class='message-content leftMsg'><span class='icon-arrows-left'>&nbsp;</span><span class='message-content-text'><a rel='{3}{4}' onclick='playSoundMedia(this);' class='msgMedia'><img src='./Images/IMicon/icon-sound.png' data-action='zoom' height='20'/><em>你收到一个语音消息，可在手机上查看。</em></a></span></div></li>";
 //地图签到分享:0=uid,1=发送人，2=发送时间，3=经度，4=纬度，5=地标
-var htmMsgMapLine = "<li class='msgAlign-right'><span style='color:#ccc;display:block' title='发送时间'>{2}</span><div class='message-content rightMsg'><span class='message-content-text'><div class='mapLine'><span><img src='http://restapi.amap.com/v3/staticmap?zoom=13&size=120*100&markers=mid,,%E8%BF%99:{3},{4}&key=060fdfedab4347846c19f97e0981b860' data-v='{3}_{4}' title='{5}' onclick='ViewMapSide(this);'/></span><p><span>我在这里:</span></p><p class='mapTitle' title='位置描述'><span class='sp-sign'></span>{5}</p></div></span><span class='icon-arrows'>&nbsp;</span></div><div class='uPic' style='margin:0px'><a><img src='Images/IMIcon/uface.jpg?UserSign={0}' width='30' height='30' title='{1}'/></a></div></li>";
-var htmMsgMapLineL = "<li class='msgAlign-left'><div class='uPic-left' style='margin:0px'><a><img src='Images/IMIcon/uface.jpg?UserSign={0}' width='30' height='30'/></a></div><div style='padding:0 35px;'><span title='发送人'>{1}</span><span class='msgline-stime' style='margin:0 0 0 5px;' title='发送时间'>{2}</span></div><div class='message-content leftMsg'><span class='icon-arrows-left'>&nbsp;</span><span class='message-content-text'><div class='mapLine'><span><img src='http://restapi.amap.com/v3/staticmap?zoom=13&size=120*100&markers=mid,,%E8%BF%99:{3},{4}&key=060fdfedab4347846c19f97e0981b860' data-v='{3}_{4}' title='{5}' onclick='ViewMapSide(this);'/></span><p><span>我在这里:</span></p><p class='mapTitle'><span class='sp-sign'></span>{5}</p></div></span></div></li>";
+var htmMsgMapLine = "<li class='msgAlign-right'><span style='color:#ccc;display:block' title='发送时间'>{2}</span><div class='message-content rightMsg'><span class='message-content-text'><div class='mapLine'><span><img src='http://restapi.amap.com/v3/staticmap?zoom=13&size=120*100&markers=mid,,%E8%BF%99:{3},{4}&key=060fdfedab4347846c19f97e0981b860' data-v='{3}_{4}' title='{5}' onclick='ViewMapSide(this);'/></span><p><span>我在这里:</span></p><p class='mapTitle' title='位置描述'><span class='sp-sign'></span>{5}</p></div></span><span class='icon-arrows'>&nbsp;</span></div><div class='uPic' style='margin:0px'><a><img src='./Images/IMicon/uface.jpg?UserSign={0}' width='30' height='30' title='{1}'/></a></div></li>";
+var htmMsgMapLineL = "<li class='msgAlign-left'><div class='uPic-left' style='margin:0px'><a><img src='./Images/IMicon/uface.jpg?UserSign={0}' width='30' height='30'/></a></div><div style='padding:0 35px;'><span title='发送人'>{1}</span><span class='msgline-stime' style='margin:0 0 0 5px;' title='发送时间'>{2}</span></div><div class='message-content leftMsg'><span class='icon-arrows-left'>&nbsp;</span><span class='message-content-text'><div class='mapLine'><span><img src='http://restapi.amap.com/v3/staticmap?zoom=13&size=120*100&markers=mid,,%E8%BF%99:{3},{4}&key=060fdfedab4347846c19f97e0981b860' data-v='{3}_{4}' title='{5}' onclick='ViewMapSide(this);'/></span><p><span>我在这里:</span></p><p class='mapTitle'><span class='sp-sign'></span>{5}</p></div></span></div></li>";
 //对方文本信息行
-var htmMsgLine2 = "<li class='msgAlign-left'><div class='uPic-left'><a><img src='Images/IMIcon/uface.jpg?UserSign={0}' width='30' height='30'/></a></div><div style='padding:0 35px;'><span class='msgline-snick'>{1}</span><span class='msgline-stime' style='margin:0 0 0 5px;'>{2}</span></div><div class='message-content leftMsg'><span class='icon-arrows-left'>&nbsp;</span><span class='message-content-text'>{3}</span></div></li>";
-var htmCreateUserListR = "<li><img src='Images/IMIcon/uface.jpg?UserSign={0}' width='30' height='30' /><span class='u-name' id='{1}'>{2}</span></li>";//创建讨论组已选列表（默认行）
-var htmCreateUserListL = "<li><img src='Images/IMIcon/uface.jpg?UserSign={0}' width='30' height='30' /><span id='{1}' title='{2}'>{3}</span></li>";//创建讨论组待选列表
-var htmCreateUserListRadd = "<li><img src='Images/IMIcon/uface.jpg?UserSign={0}' width='30' height='30' /><span class='u-name' id='{1}'>{2}</span><span class='op-close' onclick='javascript:removeElement(this);'>X</span></li>";//创建讨论组已选列表（添加行）
+var htmMsgLineL = "<li class='msgAlign-left'><div class='uPic-left'><a><img src='./Images/IMicon/uface.jpg?UserSign={0}' width='30' height='30'/></a></div><div style='padding:0 35px;'><span class='msgline-snick'>{1}</span><span class='msgline-stime' style='margin:0 0 0 5px;'>{2}</span></div><div class='message-content leftMsg'><span class='icon-arrows-left'>&nbsp;</span><span class='message-content-text'>{3}</span></div></li>";
+var htmCreateUserListR = "<li><img src='./Images/IMicon/uface.jpg?UserSign={0}' width='30' height='30' /><span class='u-name' id='{1}'>{2}</span></li>";//创建讨论组已选列表（默认行）
+var htmCreateUserListL = "<li><img src='./Images/IMicon/uface.jpg?UserSign={0}' width='30' height='30' /><span id='{1}' title='{2}'>{3}</span></li>";//创建讨论组待选列表
+var htmCreateUserListRadd = "<li><img src='./Images/IMicon/uface.jpg?UserSign={0}' width='30' height='30' /><span class='u-name' id='{1}'>{2}</span><span class='op-close' onclick='javascript:removeElement(this);'>X</span></li>";//创建讨论组已选列表（添加行）
 //用户列表行：0-key,1-usersign,2-username,3-name,4-imid,5-iconsrc,6-class
 var htmFormUserList = "<li id='{0}_{1}'><img src='{5}' class='{6}' width='30' height='30'><a href='#' id='U_{1}' data-im='{4}' class='textOverbreak' title='{2}'>{3}</a></li>";//主窗体 用户列表行
 //群组列表行：0-key,1-imid,2-iconurl,3-imid,4-subject,5-name
 var htmFormGroupListDf = "<li id='{0}_{1}'><img src='{2}' width='30' height='30'><a href='#' id='U_{1}' data-im='{3}' class='textOverbreak' title='{4}'>{5}</a></li>";//主窗体 讨论组列表行 缺省讨论组用户列表行元素 默认头像：dfGroup.png
-var htmCreateGroupUserListCur = "<li><img src='Images/IMIcon/uface.jpg?UserSign={0}' width='30' height='30' /><span class='u-name' id='{1}'>{2}</span></li>";//讨论组用户列表（创建窗,群主非当前用户）
-var htmCreateGroupUserListCurMe = "<li><img src='Images/IMIcon/uface.jpg?UserSign={0}' width='30' height='30' /><span class='u-name' id='{1}'>{2}</span><span class='op-close' onclick='javascript:removeElement(this);' title='移除'>X</span></li>";//讨论组用户列表（创建列表窗）
-var htmCreateGroupUserListMy2 = "<li><img src='Images/IMIcon/uface.jpg?UserSign={0}' width='30' height='30' /><span id='{1}' title='{2}'>{3}</span><span id='sp_{4}' class='op-close' onclick='javascript:removeFromGroup(this.id);' title='移出讨论组'>X</span></li>";//讨论组用户列表创建人行元素
-var htmCreateGroupUserListMy = "<li class='mim'><img src='Images/IMIcon/uface.jpg?UserSign={0}' width='30' height='30' /><span id='{1}' title='{2}'>{3}</span><span id='sp_{4}' class='op-close' onclick='javascript:removeFromGroup(this.id);' title='退出讨论组'>X</span></li>";//讨论组用户列表当前用户行元素
-var htmCreateGroupUserListMyLine = "<li><img src='Images/IMIcon/uface.jpg?UserSign={0}' width='30' height='30' /><span id='{1}' title='{2}'>{3}</span><span id='sp_{4}' class='op-close' onclick='javascript:removeFromGroup(this.id);' title='退出讨论组'>X</span></li>";//讨论组用户列表当前用户行元素
-var htmCreateGroupUserListCreater = "<li class='mim'><img src='Images/IMIcon/uface.jpg?UserSign={0}' width='30' height='30' /><span id='{1}' title='{2}'>{3}</span></li>";//讨论组用户列表当前用户行元素
-var htmCreateGroupUserList = "<li><img src='Images/IMIcon/uface.jpg?UserSign={0}' width='30' height='30' /><span id='{1}' title='{2}'>{3}</span></li>";//讨论组用户列表其他用户行元素 有自定义头像。--此行暂时不用
+var htmCreateGroupUserListCur = "<li><img src='./Images/IMicon/uface.jpg?UserSign={0}' width='30' height='30' /><span class='u-name' id='{1}'>{2}</span></li>";//讨论组用户列表（创建窗,群主非当前用户）
+var htmCreateGroupUserListCurMe = "<li><img src='./Images/IMicon/uface.jpg?UserSign={0}' width='30' height='30' /><span class='u-name' id='{1}'>{2}</span><span class='op-close' onclick='javascript:removeElement(this);' title='移除'>X</span></li>";//讨论组用户列表（创建列表窗）
+var htmCreateGroupUserListMy2 = "<li><img src='./Images/IMicon/uface.jpg?UserSign={0}' width='30' height='30' /><span id='{1}' title='{2}'>{3}</span><span id='sp_{4}' class='op-close' onclick='javascript:removeFromGroup(this.id);' title='移出讨论组'>X</span></li>";//讨论组用户列表创建人行元素
+var htmCreateGroupUserListMy = "<li class='mim'><img src='./Images/IMicon/uface.jpg?UserSign={0}' width='30' height='30' /><span id='{1}' title='{2}'>{3}</span><span id='sp_{4}' class='op-close' onclick='javascript:removeFromGroup(this.id);' title='退出讨论组'>X</span></li>";//讨论组用户列表当前用户行元素
+var htmCreateGroupUserListMyLine = "<li><img src='./Images/IMicon/uface.jpg?UserSign={0}' width='30' height='30' /><span id='{1}' title='{2}'>{3}</span><span id='sp_{4}' class='op-close' onclick='javascript:removeFromGroup(this.id);' title='退出讨论组'>X</span></li>";//讨论组用户列表当前用户行元素
+var htmCreateGroupUserListCreater = "<li class='mim'><img src='./Images/IMicon/uface.jpg?UserSign={0}' width='30' height='30' /><span id='{1}' title='{2}'>{3}</span></li>";//讨论组用户列表当前用户行元素
+var htmCreateGroupUserList = "<li><img src='./Images/IMicon/uface.jpg?UserSign={0}' width='30' height='30' /><span id='{1}' title='{2}'>{3}</span></li>";//讨论组用户列表其他用户行元素 有自定义头像。--此行暂时不用
 var sysMsgLine = "<li class='sys-line' style='text-align:center;color:#ccc;'>{0}<span></span></li>";
 var loadMoreTip = "<li class='lm-line' style='text-align:center;color:#ccc;'><a data-value='{0}' onclick='loadMoreMsg(this);'><span class='questionIcon'></span>查看更多消息</a></li>";
 var loaderID = 1001;
@@ -87,282 +98,337 @@ var firstTimeLoad = true;
 
 //Begin DOM Ready.
 $(document).ready(function () {
-        IMLogin();//IM 登录
+    IMLogin();//IM 登录
 
-        setTimeout(function () {
-            firstTimeLoad = true;
-            InitialIMFrame();
-        },2000);
+    setTimeout(function () {
+        firstTimeLoad = true;
+        InitialIMFrame();
+    },2000);
 
-        $(".talk-tab span").bind("click", function () {
-            var i = $(this).attr('data-rel');
-            $(".talk-tab span").removeClass("tab-now").eq(i).addClass("tab-now");
-            $("#talkBoxContent>div").hide().eq(i).show();
-        });
+    $(".talk-tab span").bind("click", function () {
+        var i = $(this).attr('data-rel');
+        $(".talk-tab span").removeClass("tab-now").eq(i).addClass("tab-now");
+        $("#talkBoxContent>div").hide().eq(i).show();
+    });
 
-        //关闭对话窗
-        $(".top-talk-close").click(function (e) {
-            $(this).closest("div.talkingBox").hide();
+    //关闭对话窗
+    $(".top-talk-close").click(function (e) {
+        $("#Calendar").show();
+        $(this).closest("div.talkingBox").hide();
+    });
+    //页签收缩事件
+    $(".subNav").click(function () {
+        $(this).toggleClass("currentDd").siblings(".subNav").removeClass("currentDd")
+        $(this).toggleClass("currentDt").siblings(".subNav").removeClass("currentDt")
+        $(this).next(".chat-listContent").slideToggle(500).siblings(".chat-listContent").slideUp(500);
+    });
+    //设置选项：创建讨论组事件
+    $(".im-Setting ul li").eq(3).unbind("click").bind("click", function () {
+        $(".cb-right-list #selectedList").empty();
+        loadCreateUserList();//加载用户列表
+        layer.open({
+            type: 1,
+            title: '创建讨论组',
+            shade: false,
+            shadeClose: false,
+            area: ['445px', '540px'],
+            content: $("#createBox"),
         });
-        //页签收缩事件
-        $(".subNav").click(function () {
-            $(this).toggleClass("currentDd").siblings(".subNav").removeClass("currentDd")
-            $(this).toggleClass("currentDt").siblings(".subNav").removeClass("currentDt")
-            $(this).next(".chat-listContent").slideToggle(500).siblings(".chat-listContent").slideUp(500);
-        });
-        //设置选项：创建讨论组事件
-        $(".im-Setting ul li").eq(3).unbind("click").bind("click", function () {
-            $(".cb-right-list #selectedList").empty();
-            loadCreateUserList();//加载用户列表
-            layer.open({
-                type: 1,
-                title: '创建讨论组',
-                shade: false,
-                shadeClose: false,
-                area: ['445px', '540px'],
-                content: $("#createBox"),
-            });
-            $(".im-Setting").hide();
-            $("#objName").removeAttr("disabled");
-        });
-        /*设置选项：在线*/
-        $(".im-Setting ul li").eq(0).unbind("click").bind("click", function () {
-            IMLogin();
-            setTimeout(ListenNotReadMsg,3000);
-            $(".im-Setting").hide();
-        });
-        /*设置选项：离线*/
-        $(".im-Setting ul li").eq(1).unbind("click").bind("click", function () {
-            sdk.Base.destroy();
-            $(".im-Setting").hide();
-        });
-        /*设置选项：刷新组织架构*/
-        $(".im-Setting ul li").eq(2).unbind("click").bind("click", function () {
-            firstTimeLoad = false;
-            loadTalkBaseData();
-            $(".im-Setting").hide();
-        });
-        //设置按钮事件
-        $("#im-n-seting").toggle(function () {
-            $(".im-Setting").show();
-        }, function () {
-            $(".im-Setting").hide();
-        });
-        //关闭窗体事件
-        $("#closeBtn").click(function () {
-            $("#selectedList").empty();
-            $("#objName").val("");
-            layer.closeAll();
-        });
-        $(".tName").toggle(function(){
-            $(".tak-infos").slideDown('500');
-            $(".tog-sho").addClass('active');
-        },function(){
-            $(".tak-infos").slideUp('500');
-            $(".tog-sho").removeClass('active');
-        });
-        //$(".si-face").toggle(function(){$(".face-box").show();},function(){$(".face-box").hide();});//Not Used.
-        $(".si-face").click(function(){
-            if($(".face-box").css('display')=='none'){
-                $(".face-box").show();
-            }else{
-                $(".face-box").hide();
-            }
-        });
-        $(".sb-img").on('click',function(){return $("#upImgTarget").click();});
-        $(".sc-img").on('click',function(){layer.msg('该功能暂不开放');});
-        $("#btn_searchMsg").click(function(){SearchHistoryMsg();});
-        //表情选择
-        $(".face-box div.emoji ul li").live("click", function () {
-            var dname = $(this).attr("title");
-            $("#talkingBox #txtInput").html($("#talkingBox #txtInput").html() + replaceFaceInfo("[" + dname + "]"));
-            $(".face-box").css("display", "none");
-        });
-        //滚动条监听
-        var nScrollHight = 0;
-        var nScrollTop = 0;
-        var nObjHight = 0;
-        $("ul#UserList").on("scroll", function (e) {
-            if (50>= $(this).height() - $(this).scrollTop()) {
-                //LoadMoreUserList();
-            }
-        });
+        $(".im-Setting").hide();
+        $("#objName").removeAttr("disabled");
+    });
+    /*设置选项：在线*/
+    $(".im-Setting ul li").eq(0).unbind("click").bind("click", function () {
+        IMLogin();
+        setTimeout(ListenNotReadMsg,3000);
+        $(".im-Setting").hide();
+    });
+    /*设置选项：离线*/
+    $(".im-Setting ul li").eq(1).unbind("click").bind("click", function () {
+        sdk.Base.destroy();
+        $(".im-Setting").hide();
+    });
+    /*设置选项：刷新组织架构*/
+    $(".im-Setting ul li").eq(2).unbind("click").bind("click", function () {
+        firstTimeLoad = false;
+        loadTalkBaseData();
+        $(".im-Setting").hide();
+    });
+    //设置按钮事件
+    $("#im-n-seting").toggle(function () {
+        $(".im-Setting").show();
+    }, function () {
+        $(".im-Setting").hide();
+    });
+    $('.sp-chat-set').on('click',function(){
+        console.log($(this).hasClass('active'));
+        if($(this).hasClass('active')){
+            $('.chat-set-list').removeClass('show');
+            $(this).removeClass('active');
+        }else{
+            $('.chat-set-list').addClass('show');
+            $(this).addClass('active');
+        }
+    });
 
-        //var dropload = $('ul#UserList').dropload({
-        //    scrollArea: window,
-        //    domDown: {
-        //        domClass: 'dropload-down',
-        //        domRefresh: '<div class="dropload-refresh">上拉加载更多</div>',
-        //        domLoad: '<div class="dropload-load"><span class="loading"></span>加载中...</div>',
-        //        domNoData: '<div class="dropload-noData">已无数据</div>'
-        //    },
-        //    loadDownFn: function (me) {
-        //        setTimeout(function () {
-        //            if (false) {
-        //                me.resetload();
-        //                me.lock();
-        //                me.noData();
-        //                me.resetload();
-        //                return;
-        //            }
-        //            LoadMoreUserList();
-        //            me.resetload();
-        //        },5000);
-        //    }
-        //});
+    $('.chat-set-list li').on('click',function(){
+        $(this).siblings().removeClass('active');
+        $(this).addClass('active');
+        var date=new Date();
+        var timeStamp=date.toLocaleDateString()+' '+date.toLocaleTimeString();
+        localStorage.setItem('send_met',$(this).attr('data-ac')+' At:'+timeStamp);
+    });
+    //关闭窗体事件
+    $("#closeBtn").click(function () {
+        $("#selectedList").empty();
+        $("#objName").val("");
+        layer.closeAll();
+    });
+    $(".tName").toggle(function(){
+        $(".tak-infos").slideDown('800');
+        $(".tog-sho").addClass('active');
+    },function(){
+        $(".tak-infos").slideUp('800');
+        $(".tog-sho").removeClass('active');
+    });
+    //$(".si-face").toggle(function(){$(".face-box").show();},function(){$(".face-box").hide();});//Not Used.
+    $(".si-face").click(function(){
+        if($(".face-box").css('display')=='none'){
+            $(".face-box").show();
+        }else{
+            $(".face-box").hide();
+        }
+    });
+    $(".sb-img").on('click',function(){return $("#upImgTarget").click();});
+    $(".sc-img").on('click',function(){layer.msg('该功能暂不开放');});
+    $("#btn_searchMsg").click(function(){SearchHistoryMsg();});
+    //表情选择
+    $(".face-box div.emoji ul li").live("click", function () {
+        var dname = $(this).attr("title");
+        $("#talkingBox #txtInput").html($("#talkingBox #txtInput").html() + replaceFaceInfo("[" + dname + "]"));
+        $(".face-box").css("display", "none");
+    });
+    //滚动条监听
+    var nScrollHight = 0;
+    var nScrollTop = 0;
+    var nObjHight = 0;
+    $("ul#UserList").on("scroll", function (e) {
+        if (50>= $(this).height() - $(this).scrollTop()) {
+            //LoadMoreUserList();
+        }
+    });
+
+    //var dropload = $('ul#UserList').dropload({
+    //    scrollArea: window,
+    //    domDown: {
+    //        domClass: 'dropload-down',
+    //        domRefresh: '<div class="dropload-refresh">上拉加载更多</div>',
+    //        domLoad: '<div class="dropload-load"><span class="loading"></span>加载中...</div>',
+    //        domNoData: '<div class="dropload-noData">已无数据</div>'
+    //    },
+    //    loadDownFn: function (me) {
+    //        setTimeout(function () {
+    //            if (false) {
+    //                me.resetload();
+    //                me.lock();
+    //                me.noData();
+    //                me.resetload();
+    //                return;
+    //            }
+    //            LoadMoreUserList();
+    //            me.resetload();
+    //        },5000);
+    //    }
+    //});
 
 
-        $("div.unsend").live("click", function () {
-            var txxt = $(this).find("span.message-content-text").text();
-            //重新发送消息：
-            console.log('resend msg.');
+    $("div.unsend").live("click", function () {
+        var txxt = $(this).find("span.message-content-text").text();
+        //重新发送消息：
+        console.log('resend msg.');
+    });
+    //button.发送对象信息:one to one
+    $("#btnSend").click(function () {
+        $("#txtInput").find("img.faceImg").each(function () {
+            var faceName = $(this).attr("alt");
+            $(this).after("[" + faceName + "]");
+            $(this).remove();
         });
-        //button.发送对象信息:one to one
-        $("#btnSend").click(function () {
-            $("#txtInput").find("img.faceImg").each(function () {
-                var faceName = $(this).attr("alt");
-                $(this).after("[" + faceName + "]");
-                $(this).remove();
-            });
-            var msg = $("#txtInput").text();//.html().replace('<div>', '\r\n').replace('</div>', '');//.text().replace(/\\r\\n/gi,'</br>');
-            if ($.trim(msg) == "") {
-                return false;
-            }
-            _talkID = elem.TalkOneID.val();//.split('_')[1];
-            if (_talkID == currentUserID) {
-                return false;
-            }
-            msgData.UserSign = currentUserID;
-            msgData.Msg = msg;
-            msgData.To = _talkID;
-            msgData.MediaType = 0;
-            var sendMsg = JSON.stringify(msgData);
-            var mType=$('#TalkType').val();
-            if(mType=='0'){
-                SendMessageTone("0", sendMsg);
-            }else if(mType=='1'){
-                SendMessageTgroup("0", sendMsg);
-            }else{
-                var curTypeCG = $("#TalkTypeIsCG").val();
-                SendMessageToESQ(curTypeCG,sendMsg);
-            }
+        var msg = $("#txtInput").text();//.html().replace('<div>', '\r\n').replace('</div>', '');//.text().replace(/\\r\\n/gi,'</br>');
+        if ($.trim(msg) == "") {
+            return false;
+        }
+        _talkID = elem.TalkOneID.val();//.split('_')[1];
+        if (_talkID == currentUserID) {
+            return false;
+        }
+        msgData.UserSign = currentUserID;
+        msgData.Msg = msg;
+        msgData.To = _talkID;
+        msgData.MediaType = 0;
+        var sendMsg = JSON.stringify(msgData);
+        var dialogType=elem.TalkType.val();
+        var curTypeCG = $("#TalkTypeIsCG").val();
+        if (dialogType == '2') {
+            sdk.Chat.sendMsgToCustomService({
+                touid: _talkID,
+                msg: msg,
+                groupid: curTypeCG,
+                success: function (data) {
+                    var date = new Date();
+                    var sendDate = formatDate("m月d日 h时i分", date, 4);
+                    msg = msg.replace(/\\r|\\n/gi, '</br>');
+                    var Rmsg = replaceFaceInfo(msg);
+                    var msgL = htmMsgLine.format(sendDate, Rmsg, currentUserID);
+                    elem.TalkOneMsg.append(msgL);
+                    $("#txtInput").text("").focus();
+                    scrollDown(elem.TalkOneMsg);
+                },
+                error: function (error) {
+                    var date = new Date();
+                    var sendDate = formatDate("m月d日 h时i分", date, 4);
+                    msg = msg.replace(/\\r|\\n/gi, '</br>');
+                    var Rmsg = replaceFaceInfo(msg);
+                    var msgL = htmMsgLine_unsend.format(sendDate, Rmsg, currentUserID);
+                    elem.TalkOneMsg.append(msgL);
 
-        });
+                    var emsg = "(" + error.code + ":" + error.resultText + ")";// JSON.stringify(error);
+                    elem.TalkOneMsg.append(htmError.format(emsg + ""));
 
-        //注册图片放大事件.
-        $(".msgBox a.msgImg").live("click", function () {
-            var sr = $(this).attr("rel");
-            layer.open({
-                type: 1,
-                title: false,
-                closeBtn: 1,
-                shadeClose: true,
-                scrollbar: false,
-                area: 'auto',
-                skin: 'layui-ext-opbox',
-                content: '<div style="border:1px solid gray;border-radius:5px;padding:5px;background:#fff;"><img src=' + sr + ' style="border:none;width:100%;height:100%;"/></div>'
-            });
-        });
-        $(".uPic-left").live("dblclick", function () {
-            var id = $(this).find("img").attr("src").split('=')[1];
-            if (typeof(id)=='undefined') {
-                return false;
-            }
-            var imid = ReadUserNameByID(id).ImUserid;
-            var title = $(this).siblings().eq(0).children("span").first().text();
-            elem.TalkOneName.empty();
-            elem.TalkOneName.append(htmTitle.format(title));
-            elem.TalkOnePic.empty();
-            elem.TalkOnePic.append(htmPic.format(id));
-            elem.TalkOneMsg.empty();
-            elem.TalkOneID.val(imid);
-            elem.TalkOneTitle.val(title);
-            if (elem.TalkGroup.css("display") == "block") {
-                elem.TalkOne.css("right", "390px");
-            } else {
-                elem.TalkOne.css("right", "340px");
-            }
-            openTalkConnection("talkingBox");
-        });
-        $("#listUserGroup li").live("dblclick",function () {
-            var id = $(this).children("span").first().attr("id");
-            if (id == currentUserID) {
-                return false;
-            }
-            var imid = ReadUserNameByID(id).ImUserid;
-            var title = $(this).children("span").first().text();
-            elem.TalkOneName.empty();
-            elem.TalkOneName.append(htmTitle.format(title));
-            elem.TalkOnePic.empty();
-            elem.TalkOnePic.append(htmPic.format(id));
-            elem.TalkOneMsg.empty();
-            elem.TalkOneID.val(imid);
-            elem.TalkOneTitle.val(title);
-
-            openTalkConnection("talkingBox");
-        });
-        //注册通讯录列选择事件
-        $(".cb-left-list #userList li").live("click",function () {
-            var id = $(this).children("span").first().attr("id");
-            var name = $(this).children("span").first().text();
-            var has = 0;
-            $(".cb-right-list #selectedList li").each(function () {
-                var cur = $(this).find("span").eq(0).attr("id");
-                if (cur == id) {
-                    has++;
-                    $(this).remove();
-                    return false;
+                    scrollDown(elem.TalkOneMsg);
+                    if (error.code === 1001) {
+                        IMLogin();
+                    }
                 }
             });
-            if (has == 0) {
-                $(".cb-right-list #selectedList").append(htmCreateUserListRadd.format(id, id, name));
-                $(this).append("<i class='selMark'></i>");
-            }
-            else {
-                $(this).find("i.selMark").remove();
-            }
-            var cout = $(".cb-right-list #selectedList li").length;
-            $("#sel-cout").text(cout);
+        } else if(dialogType=='0'){
+            SendMessageTone("0", sendMsg);
+        }else if(dialogType=='1')
+        {
+            SendMessageTgroup("0", sendMsg);
+        }
+    });
+    //注册图片放大事件.
+    $(".msgBox a.msgImg").live("click", function () {
+        var sr = $(this).attr("rel");
+        layer.open({
+            type: 1,
+            title: false,
+            closeBtn: 1,
+            shadeClose: true,
+            scrollbar: false,
+            area: 'auto',
+            skin: 'layui-ext-opbox',
+            content: '<div style="border:1px solid gray;border-radius:5px;padding:5px;background:#fff;"><img src=' + sr + ' style="border:none;width:100%;height:100%;"/></div>'
         });
+    });
+    $(".uPic-left").live("dblclick", function () {
+        var id = $(this).find("img").attr("src").split('=')[1];
+        if (typeof(id)=='undefined') {
+            return false;
+        }
+        var imid = ReadUserNameByID(id).ImUserid;
+        var title = $(this).siblings().eq(0).children("span").first().text();
+        elem.TalkOneName.empty();
+        elem.TalkOneName.append(htmTitle.format(title));
+        elem.TalkOnePic.empty();
+        elem.TalkOnePic.append(htmPic.format(id));
+        elem.TalkOneMsg.empty();
+        elem.TalkOneID.val(imid);
+        elem.TalkOneTitle.val(title);
+        if (elem.TalkGroup.css("display") == "block") {
+            elem.TalkOne.css("right", "390px");
+        } else {
+            elem.TalkOne.css("right", "340px");
+        }
+        openTalkConnection("talkingBox");
+    });
+    $("#listUserGroup li").live("dblclick",function () {
+        var id = $(this).children("span").first().attr("id");
+        if (id == currentUserID) {
+            return false;
+        }
+        var imid = ReadUserNameByID(id).ImUserid;
+        var title = $(this).children("span").first().text();
+        elem.TalkOneName.empty();
+        elem.TalkOneName.append(htmTitle.format(title));
+        elem.TalkOnePic.empty();
+        elem.TalkOnePic.append(htmPic.format(id));
+        elem.TalkOneMsg.empty();
+        elem.TalkOneID.val(imid);
+        elem.TalkOneTitle.val(title);
 
-        //对话窗拉伸事件A
-        $("#talkingBox").resize(function () {
-            var curY = $(this).height();
-            var curX = $(this).width();
-            if (curX >= 550) {
-                $(this).find("div#msgBox").width(curX);
-            }
-            if (curY >=500) {
-                $(this).find("div#msgBox").height(curY - 205);
-
+        openTalkConnection("talkingBox");
+    });
+    //注册通讯录列选择事件
+    $(".cb-left-list #userList li").live("click",function () {
+        var id = $(this).children("span").first().attr("id");
+        var name = $(this).children("span").first().text();
+        var has = 0;
+        $(".cb-right-list #selectedList li").each(function () {
+            var cur = $(this).find("span").eq(0).attr("id");
+            if (cur == id) {
+                has++;
+                $(this).remove();
+                return false;
             }
         });
+        if (has == 0) {
+            $(".cb-right-list #selectedList").append(htmCreateUserListRadd.format(id, id, name));
+            $(this).append("<i class='selMark'></i>");
+        }
+        else {
+            $(this).find("i.selMark").remove();
+        }
+        var cout = $(".cb-right-list #selectedList li").length;
+        $("#sel-cout").text(cout);
+    });
 
-        //鼠标点击文档事件
-        $(document).on('click',function (e) {
-            if($(e.target).closest('.si-face').length>0){
-                e.stopPropagation();
-            }else if($(e.target).closest('.tak-infos').length>0){
-                e.stopPropagation();
-            }
-            else if ($(e.target).closest('.face-box').length>0) {
-                e.stopPropagation();
-            } else {
-                $(".face-box").hide();
-                $(".tak-infos").slideUp('500');
-                $(".tog-sho").removeClass('active');
-            }
-        });
-     });//End DOM Ready.
+    //对话窗拉伸事件A
+    $("#talkingBox").resize(function () {
+        var curY = $(this).height();
+        var curX = $(this).width();
+        if (curX >= 550) {
+            $(this).find("div#msgBox").width(curX);
+        }
+        if (curY >=500) {
+            $(this).find("div#msgBox").height(curY - 205);
+
+        }
+    });
+
+    //鼠标点击文档事件
+    $(document).on('click',function (e) {
+        if($(e.target).closest('.si-face').length>0){
+            e.stopPropagation();
+        }else if($(e.target).closest('.tak-infos').length>0){
+            e.stopPropagation();
+        }
+        else if ($(e.target).closest('.face-box').length>0) {
+            e.stopPropagation();
+        }else if ($(e.target).closest('.sp-chat-set').length>0) {
+            e.stopPropagation();
+        }else if ($(e.target).closest('.chat-set-listxxx').length>0) {
+            e.stopPropagation();
+        } else {
+            $(".face-box").hide();
+            $(".tak-infos").slideUp('500');
+            $(".tog-sho").removeClass('active');
+            $(".sp-chat-set").removeClass('active');
+            $('.chat-set-list').removeClass('show');
+        }
+    });
+});//End DOM Ready.
 
 var uploader = null;
 var upState = 0;
 var ckError =false;
 //WebUploader文档上传插件：
 function RenderWebUploader() {
+    var httpUrl="http://test.sap360.com.cn/api/file/post/{sessionKey}/{timeStamp}/{token}";
     uploader = WebUploader.create({
-        swf: 'Scripts/webuploader/Uploader.swf',
-        server: '/Home/FileUploader',//the URL where upload file to save.
+        swf: './script/webuploader/Uploader.swf',
+        server:httpUrl,//the URL where upload file to save.
         pick: '#filePicker',
         dnd: '#contentBox',
         paste:'document.body',
@@ -388,74 +454,37 @@ function RenderWebUploader() {
     uploader.on('fileQueued', function (file) {
         console.log(file);
         var me = this,
-        owner = this.owner,
-        server = me.options.server,
-        deferred = WebUploader.Deferred();
+            owner = this.owner,
+            server = me.options.server,
+            deferred = WebUploader.Deferred();
         uploader.md5File(file)
-        // 如果读取出错了，则通过reject告诉webuploader文件上传出错。
-        .fail(function () {
-            deferred.reject();
-        })
-        // 及时显示进度
-        .progress(function (percentage) {
-            console.log('Percentage:', percentage);
-        })
-        // 完成
-        .then(function (val) {
-            console.log('md5 result:', val);
-            //与服务器校验文件MD5是否存在
-            //$.ajax('Home/checkFileMD5', {
-            //    dataType: 'json',
-            //    data: {
-            //        fMd5: val
-            //    },
-            //    success: function (response) {
-            //        console.log(response);
-            //        // 如果验证已经上传过
-            //        if (response.Data) {
-            //            //owner.skipFile(file);
-            //            deferred.reject();
-            //            console.log('文件重复，已跳过');
-            //        }
-            //        // 介绍此promise, webuploader接着往下走。
-            //        deferred.resolve(true);
-            //    }
-            //});
-        });
+            // 如果读取出错了，则通过reject告诉webuploader文件上传出错。
+            .fail(function () {
+                deferred.reject();
+            })
+            // 及时显示进度
+            .progress(function (percentage) {
+                console.log('Percentage:', percentage);
+            })
+            // 完成
+            .then(function (val) {
+                console.log('md5 result:', val);
+                var ckres=checkFileExists(val);//与服务器校验文件MD5是否存在
+                if(ckres.FileState){
+                    //owner.skipFile(file);
+                    deferred.reject();
+                    console.log('文件重复，已跳过');
+                }else{
+                    // 介绍此promise, webuploader接着往下走。
+                    deferred.resolve(true);
+                }
+            });
     });
-    //uploader.register({
-    //    'before-send-file': 'ckFilesMd5'
-    //}, {
-    //    ckFilesMd5: function (file) {
-    //        uploader.md5File(file).then(function (val) {
-    //            //与服务器校验文件MD5是否存在
-    //            $.ajax('Home/checkFileMD5', {
-    //                dataType: 'json',
-    //                data: {
-    //                    fMd5: val
-    //                },
-    //                success: function (response) {
-    //                    console.log(response);
-    //                    // 如果验证已经上传过
-    //                    if (response.Data) {
-    //                        //owner.skipFile(file);
-    //                        deferred.reject();
-    //                        console.log('文件重复，已跳过');
-    //                    }
-    //                    // 介绍此promise, webuploader接着往下走。
-    //                    deferred.resolve(true);
-    //                }
-    //            });
-    //        });
-
-    //    }
-    //});
     //当开始上传流程时触发:
-    uploader.on('startUpload', function (file) {
+    uploader.on('startUpload', function () {
         if (ckError) {
             return false;
         }
-        console.log(file);
         loaderID = parseInt(Math.random(1000) * 1000);
         var bType = $("#hd_mediaType").val().split('_')[2];//解析窗口类型
         if (bType == "1001") {
@@ -585,36 +614,13 @@ function RenderWebUploader() {
         //var upState = uploader.getStats();
     });
 }
+//与服务器校验文件MD5是否存在
+function checkFileExists(obj){
+    var ckResult={'FileData':null,'FileState':false};
+    if(obj){
 
-//异步加载通用方法
-function AjaxApi(url, type, data) {
-    var jsondata = [];
-    $.ajax({
-        url: url,
-        type: type,
-        data: data,
-        dataType: 'json',
-        async: false,
-        cache: true,
-        beforeSend: function () {
-        },
-        success: function (response) {
-            var flag = response.ContentType;
-            var data = response.Data;
-            if (flag == "True") {
-                if (data != "") {
-                    jsondata = JSON.parse(data);
-                }
-            } else {
-                console.log(data);
-            }
-        },
-        error: function (request) {
-            //layer.msg("获取数据失败,请检查网络重新登录稍后再试!");
-            console.log(request);
-        }
-    });
-    return jsondata;
+    }
+    return ckResult;
 }
 
 //表情文本替换函数
@@ -653,32 +659,19 @@ function replaceFaceInfoUrl(par) {
     }
     return htm;
 }
-//渲染表情盒（旧）
-function renderEmoji() {
-    var emos = getEmojiList()[0];
-    var htm = '<ul>';
-    for (var i = 0; i < emos.length; i++) {
-        var emo = emos[i];
-        var data = 'data:image/png;base64,' + emo[2];
-        if (i % 20 == 0) {
-            htm += '<li action-type="select" action-data="" title="' + emo[1] + '" class="">';
-        } else {
-            htm += '<li action-type="select" action-data="" title="' + emo[1] + '">';
-        }
-        htm += '<img style="display:inline;vertical-align:middle;" src="' + data + '" unicode16="' + emo[1] + '"/></li>';
-    }
-    $("#emojiMore").empty().append(htm);
-}
+
 //渲染表情盒
 function RenderDefaultFace() {
-    var emos = face;
-    var htm = '<ul>';
-    for (var key in emos) {
-        var ks = key.substr(1,key.lastIndexOf(']')-1);
-        htm += "<li action-type='select' action-data='' title='" + ks + "'><img src='./Images/Face/" + emos[key] + "'></li>";
+    if(face){
+        var htm = '<ul>';
+        for (var key in face) {
+            var ks = key.substr(1,key.lastIndexOf(']')-1);
+            htm += "<li action-type='select' action-data='' title='" + ks + "'><img src='./Images/Face/" +face[key] + "'></li>";
+        }
+        htm += "</ul>";
+        $(".face-list").empty().append(htm);
     }
-    htm += "</ul>";
-    $(".face-list").empty().append(htm);
+
 }
 
 //获取元素Y坐标值
@@ -723,45 +716,40 @@ function LoadTopRecentContacts() {
         success: function (data) {
             console.log("--最近会话--",data);
             data = data.data;
-            var list = data.cnts, type = '';
+            var list = data.cnts;
             var gHtm = '';
-            var gHtm2 = '';
             list.forEach(function(item){
-                var has = 0;
-                var imid = item.uid.substring(8);
+                var imid =sdk.Base.getNick(item.uid);
                 if (imid==ImUID) {
-                    return true;
+                    return true;//消息发送人是否当前用户，是则跳过
                 }
-                if (imid.length>10) {
-                    var userInfo = ReadUserName(imid);
-                    var usid = userInfo.UserSign;
-                    var sendTime = item.time;
-                    type = item.type;
-                    var msg = typeof (item.msg.length) != 'undefined' ? item.msg[0][1] : item.msg;
-                    if (usid!='') {
-                        var uname = typeof (userInfo.UserName) == 'undefined' ? "佚名" : userInfo.UserName;
-                        var uShortName = "";
-                        if (uname.lengthGB() > 10) {
-                            uShortName = uname.substr(0, 10) + "...";
-                        } else {
-                            uShortName = uname;
-                        }
-                        var uShortMsg = "";
-                        if (type===0) {
-                            if (uname.lengthGB() > 10) {
-                                uShortMsg = msg.substr(0, 10) + "...";
-                            } else {
-                                uShortMsg = msg;
-                            }
-                        }
-                        else {
-                            uShortMsg = "[消息]";
-                        }
-                        gHtm += htmNewLineOne.format(usid, imid, uShortName, uShortMsg, '', '');
-                        gHtm2+=htmNewLineO.format(usid + "_" + imid, usid, usid, uname, uShortName, "");
+                var msgType=item.type;//msg type
+                var sendTime = formatDate("m月d日 h时i分", new Date(item.time), 4);//发送时间
+                var msg = typeof (item.msg.length) != 'undefined' ? item.msg[0][1] : item.msg;
+                var uShortMsg = "";
+                if (msgType==0) {
+                    if (msg.lengthGB() > 10) {
+                        uShortMsg = msg.substr(0, 10) + "...";
+                    } else {
+                        uShortMsg = msg;
                     }
                 }
+                else {
+                    uShortMsg = "[消息]";
+                }
+                if (imid.length>10&&item.nickname!=null) {
+                    var userInfo = ReadUserName(imid);
+                    var usid = userInfo.UserSign==''?imid:userInfo.UserSign;
+                    var uname =userInfo.UserName== '' ? item.nickname : userInfo.UserName;
+                    gHtm += htmNewLine.format(usid, imid,'0',uname,sendTime,uShortMsg,'','');//7:tipBox
+                }else{
+                    var groupInfo = ReadGroupName(imid);
+                    var usid = groupInfo.DocEntry==''?imid:groupInfo.DocEntry;
+                    var uname =groupInfo.Subject== '' ? "群消息" : groupInfo.Subject;
+                    gHtm += htmNewLine.format(usid, imid,'1',uname,sendTime,uShortMsg,'','');//7:tipBox
+                }
             });
+            elem.TalkNewList.empty();
             elem.TalkNewList.append(gHtm);
         },
         error: function(error){
@@ -877,7 +865,7 @@ function LoadTopHistoryMsg(tp) {
 
 //消息格式化：tp=对话框类型，data=对话数据
 var formatMsgLine=function(tp,data){
-    console.log('--格式数据行--',data);
+    //console.log('--格式数据行--',data);//{from:sendIMID,msg:msgObj,msgId:msgID,time:sendTime,to:receiveIMID,type:msgType}
     var htm='';
     try{
         var mType =data.type;//消息类型
@@ -887,13 +875,17 @@ var formatMsgLine=function(tp,data){
         var sUID = userInfo.UserSign;
         var sName = userInfo.UserName!=''?userInfo.UserName:"佚名";
         var toUserInfo=null;
+        var toUID='';
+        var toName='';
         if(tp=='0'){
             toUserInfo = ReadUserName(data.to.substring(8));
-        }else{
-            toUserInfo = ReadUserName(data.to);
+            toUID = toUserInfo.UserSign;
+            toName = toUserInfo.UserName;
+        }else if(tp=='1'){
+            toUserInfo = ReadGroupName(data.to);
+            toUID = toUserInfo.DocEntry;
+            toName = toUserInfo.Subject;
         }
-        var toUID = toUserInfo.UserSign;
-        var toName = toUserInfo.UserName;
         var curDate = formatDate("m月d日 h时i分", new Date(data.time), 4);//发送时间
         var sysTip =data.HintText + "—" + curDate;
         var hint = 0;//. item.Hint;//1-系统提示，0-通信信息
@@ -907,7 +899,6 @@ var formatMsgLine=function(tp,data){
                         var mediaReg = /.file.alimmdn.com\//g;
                         var isMap = mapReg.exec(msg);
                         var isMedia = mediaReg.exec(msg);
-                        console.log(isMap);
                         if (isMap != null) {
                             var le = msg.substr(msg.lastIndexOf(':') + 1, msg.lastIndexOf('）')).split(',');
                             console.log(le);
@@ -916,7 +907,7 @@ var formatMsgLine=function(tp,data){
                             htm = htmMsgMediaLineL.format(sUID, sName, curDate, msg, '');
                         } else {
                             msg = replaceFaceInfo(msg);
-                            htm = htmMsgLine2.format(sUID, sName, curDate, msg);
+                            htm = htmMsgLineL.format(sUID, sName, curDate, msg);
                         }
                         break;
                     case 1:
@@ -1323,7 +1314,7 @@ function loadTalkBaseData() {
     //            }
     //            roundIndex = 1;
     //        }
-    //        //连线获取服务器状态值：
+    //        //连线获取服务器状态值：        
     //        sdk.Chat.getUserStatus({
     //            //appkey: 'ImAppKey',
     //            uids: ckUser,
@@ -1368,7 +1359,7 @@ function loadTalkBaseData() {
                     1: ''
                 };
                 if (item.IconUrl == '' || item.IconUrl == null || item.IconUrl == 'null') {
-                    item.IconUrl = '/Images/dfUser.png';
+                    item.IconUrl = './Images/IMicon/dfUser.png';
                 }
                 UHtm += htmFormUserList.format(key,item.UserSign,item.UserName, name,item.ImUserid,item.IconUrl,statusMap[item.OnlineStatus]);
             }
@@ -1388,7 +1379,7 @@ function loadTalkBaseData() {
                 name = name.substr(0, 10) + "...";
             }
             if (firstTimeLoad===true) {
-                item.IconUrl = '/Images/dfGroup.png';
+                item.IconUrl = './Images/IMicon/dfGroup.png';
             }
             else {
                 item.IconUrl = '/User/LoadIMGroupImage?docEntry=' + item.DocEntry;
@@ -1431,7 +1422,7 @@ function LoadMoreUserList() {
                 1: ''
             };
             if (item.IconUrl == '' || item.IconUrl == null || item.IconUrl == 'null') {
-                item.IconUrl = '/Images/dfUser.png';
+                item.IconUrl = './Images/IMicon/dfUser.png';
             }
             UHtm += htmFormUserList.format(key, item.UserSign, item.UserName, name, item.ImUserid, item.IconUrl, statusMap[item.OnlineStatus]);
         }
@@ -1602,7 +1593,10 @@ function ReadUserName(obj) {
         }
     }
     if (dataArray.length<=0) {
-        hd_data =[];// AjaxApi("/User/GetUserNameList", "post", $("form[name=search]").serialize());
+
+        var lastTime=localStorage.getItem('LastModifyTime')=='undefined'?0:localStorage.getItem('LastModifyTime');
+
+        hd_data=[];
         $("#hd_UserListData").data(hd_data);
     }
     $.each(hd_data, function (k, v) {
@@ -1617,6 +1611,7 @@ function ReadUserName(obj) {
     });
     return userInfo;
 }
+
 //通过IMID筛选讨论组名称：
 function ReadGroupName(obj) {
     var groupInfo = { DocEntry: '', GroupCode: '', Subject: '' };
@@ -1628,7 +1623,8 @@ function ReadGroupName(obj) {
         }
     }
     if (dataArray.length<=0) {
-        hd_data =[];// AjaxApi("/Message/LoadDiscussion", "post", $("form[name=search]").serialize());
+
+        hd_data=[];
         $("#hd_GroupListData").data(hd_data);
     }
     $.each(hd_data, function (k, v) {
@@ -1806,11 +1802,13 @@ function removeFromGroup(obj) {
 }
 //会话列表-读取当前收到的用户对话信息:one
 function showTalkFrame(e) {
+    $("#Calendar").hide();
     var eid = $(e).attr("id");//行元素ID
     var id = $(e).attr("data-im").split('_')[0];//系统ID:usersign,groupid
     _talkID= $(e).attr("data-im").split('_')[1];//通话IM UID
     var title = $(e).find("a.msg-snick").text();//对方称昵
     var talkType=$(e).attr('data-tp');//对话类型：0=单聊，1=群聊，。。。
+    elem.TalkOne.show();
     elem.TalkOneName.empty();
     elem.TalkOneName.append(htmTitle.format(title));
     elem.TalkOnePic.empty();
@@ -1824,7 +1822,33 @@ function showTalkFrame(e) {
 
     openTalkConnection(talkType);
 }
-
+function openIMTalkFrame(obj){
+    _talkID=obj.id;//通话IM UID
+    var talkType=obj.type;//对话类型：0=单聊，1=群聊，2，...
+    var sid='';
+    var snick='';
+    if(talkType==0){
+        var objInfo=ReadUserName(_talkID);
+        sid=objInfo.UserSign;
+        snick=objInfo.UserName;
+    }else if(talkType==1){
+        var objInfo=ReadGroupName(_talkID);
+        sid=objInfo.DocEntry;
+        snick=objInfo.Subject;
+    }
+    elem.TalkOne.show();
+    elem.TalkOneName.empty();
+    elem.TalkOneName.append(htmTitle.format(snick));
+    elem.TalkOnePic.empty();
+    elem.TalkOnePic.append(htmPic.format(sid));
+    elem.TalkOneMsg.empty();
+    elem.TalkOneID.val(_talkID);
+    elem.TalkOneTitle.val(snick);
+    $(elem.TalkNewList).find('li[id$="_' + _talkID + '"]').find("a#tipCount").text("").removeClass("tipBox");
+    $("#TalkType").val(talkType);
+    $("#TalkTypeIsCG").val("");
+    openTalkConnection(talkType);
+}
 
 //滚动内容页至底部
 function scrollDown(obj) {
@@ -1870,6 +1894,7 @@ function closeAllTalkBox() {
 }
 
 //================TopIM 即时通讯
+
 //IM 登陆
 function IMLogin() {
     console.log(AppKey+"-"+ImUID+"-"+ImSecret);
@@ -1883,12 +1908,17 @@ function IMLogin() {
             console.log('--IM 登录成功--');
             //监听所有消息
             sdk.Base.startListenAllMsg();
-
         },
         error: function (error) {
             console.log('--IM 登录失败--');
         }
     });
+}
+//注销登陆
+function IMLogout(){
+    //_sdk.Base.logout();//登出后，将不会收到任何消息，也无法再调用需要登录的接口
+    _sdk.Base.destroy();
+    _sdk=null;
 }
 //监听未读取的会话记录（包括最近通话的群组）
 function ListenNotReadMsg() {
@@ -1974,8 +2004,8 @@ sdk.Event.on('CHAT.MSG_RECEIVED', function (e) {
     console.log("----接收单聊信息----");
     console.log(e);
     var msgs =e.data.msgs;
-    msgData.To = e.data.msgs[0].to.substring(8);//e.data.touid.substring(8);//消息接收人ID
-    msgData.From = e.data.msgs[0].from.substring(8);//e.data.uid.substring(8);//消息发送人ID
+    msgData.To =sdk.Base.getNick(e.data.msgs[0].to);//消息接收人ID
+    msgData.From =sdk.Base.getNick(e.data.msgs[0].from);//消息发送人ID
     var toUser = ReadUserName(msgData.To);//消息接收人
     var foUser = ReadUserName(msgData.From);//消息发送人
     msgData.ToUserSign = toUser.UserSign;//消息接收人ID
@@ -1985,36 +2015,8 @@ sdk.Event.on('CHAT.MSG_RECEIVED', function (e) {
     msgData.Msg = e.data.msgs[0].msg;
     msgData.SendDate = e.data.msgs[0].time;
     msgData.MediaType = e.data.msgs[0].type;
-    var sMsg = "";
     if (msgData.From=='systemuser') {
         return false;
-    }
-    switch (msgData.MediaType) {
-        case 0:
-            sMsg = msgData.Msg;
-            break;
-        case 1:
-            sMsg = "[图片]";
-            break;
-        case 2:
-            sMsg = "[语音]";
-            break;
-        case 3:
-            sMsg = "[群消息]";
-            break;
-        case 66:
-            sMsg = "发了个附件,请注意查收！";
-            break;
-        case 17:
-            sMsg = "发了个附件,请注意查收！";
-            break;
-        default:
-            break;
-    }
-    if ($.trim(sMsg)!='') {
-        var shortMsg = msgData.UserName + "：" + sMsg;
-        //layer.tips(shortMsg, "#tiBox", { tips: [4, '#F97638'], time: 3000 });
-        //ipCmd.send('im-msg',shortMsg);
     }
     ReceiveMsgFormOne(msgData);
 });
@@ -2102,26 +2104,21 @@ function ReceiveMsgFormOne(data) {
     var mType = data.MediaType;//媒体类型
     var sendDate = data.SendDate;//发送时间
     var hint = data.Hint;//系统提示信息标识：1
-    var curDate = new Date();//发送时间转换
-    if (sendDate != '') {
-        var date = new Date(sendDate);
-        curDate = formatDate("m月d日 h时i分", date, 4);
-    }
 
     if (hint == 1) {//系统消息
-        layer.tips(message, "#tiBox", { tips: [4, '#F97638'], time: 5000 });
         firstTimeLoad = false;
         loadTalkBaseData();//刷新组织结构
     } else {
-        var msg = message;
         var has = 0;
         var curHtm = '';
         elem.TalkNewList.find("li").each(function () {
             var cur = $(this).attr("data-im").split('_')[1];//0=UserSign,1=IMID
             if (cur == senderIMID) {
                 var unReCount = $(this).find("div[id='tipCount']").text();
-                var count = parseInt(unReCount == "" ? 0 : unReCount) + 1;
-                $(this).find("div[id='tipCount']").text(count).addClass("tipBox");
+                if(senderIMID!=elem.TalkOneID.val()){
+                    var count = parseInt(unReCount == "" ? 0 : unReCount) + 1;
+                    $(this).find("div[id='tipCount']").text(count).addClass("tipBox");
+                }
                 var hmsg = '';
                 if (mType ==0) {
                     if (message.lengthGB() > 10) {
@@ -2133,7 +2130,7 @@ function ReceiveMsgFormOne(data) {
                 }else{
                     hmsg ="给你发了一条消息，请注意查看！";
                 }
-                $(this).find("p.member_msg").html(senderName + ":" + replaceFaceInfo(hmsg));
+                $(this).find("p.member_msg").html(replaceFaceInfo(hmsg));
                 has++;
                 curHtm = $(this);
                 $(this).remove();
@@ -2177,139 +2174,12 @@ function ReceiveMsgFormOne(data) {
         if (elem.TalkOne.css("display") == "block") {//若当前会话框已经打开
             var _talkID = elem.TalkOneID.val() == "" ? "" : elem.TalkOneID.val();//TalkID既IMUserid(touid).
             //接收的信息不是当前会话对象发出的,则将信息添加到新会话列表
-            if (_talkID != "" && _talkID == senderIMID) {
-                var htm = "";
-                if (senderUID != currentUserID) {
-                    switch (mType) {
-                        case 0:
-                            msg = replaceFaceInfo(message);
-                            msg = msg.replace(/\\r|\\n/gi, '</br>');
-                            htm = htmMsgLine2.format(senderUID, senderName, curDate, msg);
-                            break;
-                        case 1:
-                            msg = msg.replace('-s.', '.');
-                            htm = htmMsgImgLineL.format(senderUID, senderName, curDate, msg, '', '');
-                            break;
-                        case 2:
-                            htm = htmMsgSoundLineL.format(senderUID, senderName, curDate, msg, '');
-                            break;
-                        case 3:
-                            var mInfo = JSON.parse(msg);
-                            htm = htmMsgMediaLineL.format(senderUID, senderName, curDate, mInfo.resource, '');
-                            break;
-                        case 8:
-                            var mapInfo = message.split(',');
-                            htm = htmMsgMapLineL.format(senderUID, senderName, curDate, mapInfo[0], mapInfo[1], mapInfo[2]);
-                            break;
-                        case 4:
-                            var mInfo = JSON.parse(msg);
-                            htm = htmMsgMediaLineL.format(senderUID, senderName, curDate, mInfo.resource, '');
-                            break;
-                        case 66:
-                            var fileInfo = JSON.parse(message.customize);
-                            if (typeof (fileInfo) != 'undefined') {
-                                if (fileInfo.T == 1000) {
-                                    var fsize = parseInt(fileInfo.D.L / 1024) > 1024 ? (fileInfo.D.L / 1048576).toFixed(2) + " MB" : (fileInfo.D.L / 1024).toFixed(2) + " KB";
-                                    var fileSrc = docUrl + fileInfo.D.P;
-                                    if (privateMark == 1) {
-                                        htm = htmMsgFileLineL.format(senderUID, senderName, curDate, fileInfo.D.F, fsize, fileSrc, '');
-                                    } else {
-                                        htm = htmMsgFileLineL.format(senderUID, senderName, curDate, fileInfo.D.F, fsize, fileSrc + "?filename=" + encodeURI(fileInfo.D.F), '');
-                                    }
-                                }
-                            }
 
-                            break;
-                        default:
-                            break;
-                    }
-                } else {
-                    switch (mType) {
-                        case 0:
-                            msg = msg.replace(/\\r|\\n/gi, '</br>');
-                            htm = htmMsgLine.format(curDate, msg, currentUserID);
-                            break;
-                        case 1:
-                            msg = msg.replace('-s.', '.');
-                            htm = htmMsgImgLine.format(curDate, msg, '', '', currentUserID);
-                            break;
-                        case 2:
-                            htm = htmMsgSoundLine.format(curDate, msg, '', currentUserID);
-                            break;
-                        case 3:
-                            var mInfo = JSON.parse(msg);
-                            htm = htmMsgMediaLine.format(curDate, mInfo.resource, '', currentUserID);
-                            break;
-                        case 8:
-                            var mapInfo = message.split(',');
-                            htm = htmMsgMapLine.format(currentUserID, '', curDate, mapInfo[0], mapInfo[1], mapInfo[2]);
-                            break;
-                        case 66:
-                            var fileInfo = JSON.parse(message.customize);
-                            if (typeof (fileInfo) != 'undefined') {
-                                if (fileInfo.T == 1000) {
-                                    var fsize = parseInt(fileInfo.D.L / 1024) > 1024 ? (fileInfo.D.L / 1048576).toFixed(2) + " MB" : (fileInfo.D.L / 1024).toFixed(2) + " KB";
-                                    var fileSrc = docUrl + fileInfo.D.P;
-                                    if (privateMark == 1) {
-                                        htm = htmMsgFileLine.format(curDate, fileInfo.D.F, fsize, fileSrc, '', currentUserID);
-                                    } else {
-                                        htm = htmMsgFileLine.format(curDate, fileInfo.D.F, fsize, fileSrc + "?filename=" + encodeURI(fileInfo.D.F), '', currentUserID);
-                                    }
-                                }
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                elem.TalkOneMsg.append(htm);
-                $("#txtInput").text("").focus();
-                scrollDown(elem.TalkOneMsg);
-            } else if (senderUID == currentUserID && data.To==_talkID) {
-                //data.ToUserSign, data.To, data.ToName
-                var htm = "";
-                switch (mType) {
-                    case 0:
-                        msg = msg.replace(/\\r|\\n/gi, '</br>');
-                        htm = htmMsgLine.format(curDate, msg, currentUserID);
-                        break;
-                    case 1:
-                        msg = msg.replace('-s.', '.');
-                        htm = htmMsgImgLine.format(curDate, msg, '', '', currentUserID);
-                        break;
-                    case 2:
-                        htm = htmMsgSoundLine.format(curDate, msg, '', currentUserID);
-                        break;
-                    case 3:
-                        var mInfo = JSON.parse(msg);
-                        htm = htmMsgMediaLine.format(curDate, mInfo.resource, '', currentUserID);
-                        break;
-                    case 8:
-                        var mapInfo = message.split(',');
-                        htm = htmMsgMapLine.format(currentUserID, '', curDate, mapInfo[0], mapInfo[1], mapInfo[2]);
-                        break;
-                    case 66:
-                        var fileInfo = JSON.parse(message.customize);
-                        if (typeof (fileInfo) != 'undefined') {
-                            if (fileInfo.T == 1000) {
-                                var fsize = parseInt(fileInfo.D.L / 1024) > 1024 ? (fileInfo.D.L / 1048576).toFixed(2) + " MB" : (fileInfo.D.L / 1024).toFixed(2) + " KB";
-                                var fileSrc = docUrl + fileInfo.D.P;
-                                if (privateMark == 1) {
-                                    htm = htmMsgFileLine.format(curDate, fileInfo.D.F, fsize, fileSrc, '', currentUserID);
-                                } else {
-                                    htm = htmMsgFileLine.format(curDate, fileInfo.D.F, fsize, fileSrc + "?filename=" + encodeURI(fileInfo.D.F), '', currentUserID);
-                                }
-                            }
-                        }
-                        break;
-                    default:
-                        break;
-                }
+            var htm =formatMsgLine('0',{'from':data.From,'msg':data.Msg,'msgId':'','time':data.SendDate,'to':data.To,'type':data.MediaType});
+            elem.TalkOneMsg.append(htm);
+            $("#txtInput").text("").focus();
+            scrollDown(elem.TalkOneMsg);
 
-                elem.TalkOneMsg.append(htm);
-                $("#txtInput").text("").focus();
-                scrollDown(elem.TalkOneMsg);
-            }
             $(".talk-tab span").eq(0).removeClass("info");
             var timestamp = Math.floor((+new Date()) / 1000)+5000;
             console.log(timestamp);
@@ -2326,39 +2196,7 @@ function ReceiveMsgFormOne(data) {
         }
     }
 };
-//给客服发消息
-function SendMessageToESQ(gpid,obj){
-    sdk.Chat.sendMsgToCustomService({
-        touid:_talkID,
-        msg: obj.Msg,
-        groupid: gpid,
-        success: function (data) {
-            var date = new Date();
-            var sendDate = formatDate("m月d日 h时i分", date, 4);
-            msg = msg.replace(/\\r|\\n/gi, '</br>');
-            var Rmsg = replaceFaceInfo(msg);
-            var msgL = htmMsgLine.format(sendDate, Rmsg, currentUserID);
-            elem.TalkOneMsg.append(msgL);
-            $("#txtInput").text("").focus();
-            scrollDown(elem.TalkOneMsg);
-        },
-        error: function (error) {
-            var date = new Date();
-            var sendDate = formatDate("m月d日 h时i分", date, 4);
-            msg = msg.replace(/\\r|\\n/gi, '</br>');
-            var Rmsg = replaceFaceInfo(msg);
-            var msgL = htmMsgLine_unsend.format(sendDate, Rmsg, currentUserID);
-            elem.TalkOneMsg.append(msgL);
-            var emsg = "(" + error.code + ":" + error.resultText + ")";// JSON.stringify(error);
-            elem.TalkOneMsg.append(htmError.format(emsg + ""));
 
-            scrollDown(elem.TalkOneMsg);
-            if (error.code === 1001) {
-                IMLogin();
-            }
-        }
-    });
-}
 //推送（图片Or文档）信息：媒体类型type=0文本,1图片,2语音,3自定义（summary），data=json数据：{ "UserSign": '发送人ID', "To":'接收人ID', "Msg":'', "MediaType": 1, "FileName": '文件名', "Size": 1024, "Path": '服务器路径', "Width": 100, "Height": 100 };
 function SendMessageTone(type, data) {
     $("#btnSend").attr("disabled", true);
@@ -2429,7 +2267,10 @@ function SendMessageTone(type, data) {
     });
 
 }
-
+//选择发送图片文件
+function selImgFile(obj) {
+    return $("#upImgTarget").click();
+}
 
 var fileTarget = document.getElementById('upImgTarget');
 if(typeof(fileTarget)!='undefined'){
@@ -2686,7 +2527,7 @@ function SendMessageTgroup(type, data) {
         sendMsgType = type;
     }
     sdk.Tribe.sendMsg({
-        _talkID: toid,
+        tid: toid,
         msg: msg,
         msgType: sendMsgType,
         success: function (data) {
@@ -2718,22 +2559,22 @@ function SendMessageTgroup(type, data) {
                 default:
                     break;
             }
-            elem.TalkGroupMsg.append(msgHtm);
-            scrollDown(elem.TalkGroupMsg);
-            $("#txtInputGroup").text("").focus();
-            $("#btnSendGroup").removeAttr("disabled");
+            elem.TalkOneMsg.append(msgHtm);
+            scrollDown(elem.TalkOneMsg);
+            $("#txtInput").text("").focus();
+            $("#txtInput").removeAttr("disabled");
         },
         error: function (error) {
             var date = new Date();
             var sendDate = formatDate("m月d日 h时i分", date, 4);
             var Rmsg =replaceFaceInfo(jsonData.Msg);
             var msgL = htmMsgLine_unsend.format(sendDate, Rmsg, currentUserID);
-            elem.TalkGroupMsg.append(msgL);
+            elem.TalkOneMsg.append(msgL);
 
             var emsg = "(" + error.code + ":" + error.resultText + ")";// JSON.stringify(error);
-            elem.TalkGroupMsg.append(htmError.format(emsg + ""));
-            scrollDown(elem.TalkGroupMsg);
-            $("#btnSendGroup").removeAttr("disabled");
+            elem.TalkOneMsg.append(htmError.format(emsg + ""));
+            scrollDown(elem.TalkOneMsg);
+            $("#txtInput").removeAttr("disabled");
             if (error.code == 1001) {
                 IMLogin();
             }
@@ -2783,57 +2624,13 @@ document.onkeyup = function (e) {
                 searchGroupUsers();
             } else if (document.activeElement.id == "txt_search") {
                 SearchHistoryMsg($("#TalkType").val());
-            }else if (document.activeElement.id == "txtInputGroup") {
-                //if (!ev.ctrlKey) {
-                //    return false;
-                //}
-                $("#txtInputGroup").find("img.faceImg").each(function () {
-                    var faceName = $(this).attr("alt");
-                    $(this).after("[" + faceName + "]");
-                    $(this).remove();
-                });
-                var sm = $("#txtInputGroup").text();//.replace('<div>', '\r\n').replace('</div>', '');
-                if ($.trim(sm) == "") {
-                    return false;
-                } else {
-                    _talkID = elem.TalkGroupID.val().split('_')[1];//对话方IMID-IMUserid
-                    var msg = { "UserSign": currentUserID, "To": _talkID, "Msg": sm, "MediaType": 0 };
-                    var recName = ReadGroupName(_talkID);
-                    var Rmsg = replaceFaceInfo(msg.Msg);
-                    sdk.Tribe.sendMsg({
-                        _talkID: msg.To,
-                        msg: sm,
-                        success: function (data) {
-                            var date = new Date();
-                            var sendDate = formatDate("m月d日 h时i分", date, 4);
-                            Rmsg = Rmsg.replace(/\\r|\\n/gi, '</br>');
-                            var msgL = htmMsgLine.format(sendDate, Rmsg, currentUserID);
-                            elem.TalkGroupMsg.append(msgL);
-                            $("#txtInputGroup").text("").focus();
-                            scrollDown(elem.TalkGroupMsg);
-                        },
-                        error: function (error) {
-                            var date = new Date();
-                            var sendDate = formatDate("m月d日 h时i分", date, 4);
-                            Rmsg = Rmsg.replace(/\\r|\\n/gi, '</br>');
-                            var msgL = htmMsgLine_unsend.format(sendDate, Rmsg, currentUserID);
-                            elem.TalkGroupMsg.append(msgL);
-
-                            var emsg = "(" + error.code + ":" + error.resultText + ")";// JSON.stringify(error);
-                            elem.TalkGroupMsg.append(htmError.format(emsg + ""));
-                            scrollDown(elem.TalkGroupMsg);
-                            if (error.code == 1001) {
-                                IMLogin();
-                            }
-                        }
-                    });
-
-
-                }
             } else if (document.activeElement.id == "txtInput") {
-                //if (!ev.ctrlKey) {
-                //    return false;
-                //}
+                var acMethod=localStorage.getItem('send_met');
+                if(acMethod=='1' && !ev.ctrlKey){
+                    return false;
+                }else if(acMethod=='0' && ev.ctrlKey){
+                    //return false;
+                }
                 $("#txtInput").find("img.faceImg").each(function () {
                     var faceName = $(this).attr("alt");
                     $(this).after("[" + faceName + "]");
@@ -2848,12 +2645,39 @@ document.onkeyup = function (e) {
                     }
                     var msg = { "UserSign": currentUserID, "To": _talkID, "Msg": sm, "MediaType": 0 };
                     var Rmsg = replaceFaceInfo(msg.Msg);
-                    var recName =ReadUserName(_talkID);
-                    var curTypeCG = $("#TalkTypeIsCG").val();
-                    if (curTypeCG != '') {
-                        SendMessageToESQ(curTypeCG,msg);
+                    var dialogType=elem.TalkType.val();
 
-                    } else {
+                    var curTypeCG = $("#TalkTypeIsCG").val();
+                    if (dialogType == '2') {
+                        sdk.Chat.sendMsgToCustomService({
+                            touid: _talkID,
+                            msg: sm,
+                            groupid: curTypeCG,
+                            success: function (data) {
+                                var date = new Date();
+                                var sendDate = formatDate("m月d日 h时i分", date, 4);
+                                Rmsg = Rmsg.replace(/\\r|\\n/gi, '</br>');
+                                var msgL = htmMsgLine.format(sendDate, Rmsg, currentUserID);
+                                elem.TalkOneMsg.append(msgL);
+                                $("#txtInput").text("").focus();
+                                scrollDown(elem.TalkOneMsg);
+                            },
+                            error: function (error) {
+                                var date = new Date();
+                                var sendDate = formatDate("m月d日 h时i分", date, 4);
+                                Rmsg = Rmsg.replace(/\\r|\\n/gi, '</br>');
+                                var msgL = htmMsgLine_unsend.format(sendDate, Rmsg, currentUserID);
+                                elem.TalkOneMsg.append(msgL);
+
+                                var emsg = "(" + error.code + ":" + error.resultText + ")";// JSON.stringify(error);
+                                elem.TalkOneMsg.append(htmError.format(emsg + ""));
+                                scrollDown(elem.TalkOneMsg);
+                                if (error.code == 1001) {
+                                    IMLogin();
+                                }
+                            }
+                        });
+                    } else if(dialogType=='0'){
                         sdk.Chat.sendMsg({
                             touid: msg.To,
                             msg: sm,
@@ -2880,8 +2704,38 @@ document.onkeyup = function (e) {
                                 }
                             }
                         });
-                    }
+                    }else if(dialogType=='1'){
+                        var msg = { "UserSign": currentUserID, "To": _talkID, "Msg": sm, "MediaType": 0 };
+                        var recName = ReadGroupName(_talkID);
+                        var Rmsg = replaceFaceInfo(msg.Msg);
+                        sdk.Tribe.sendMsg({
+                            tid: msg.To,
+                            msg: sm,
+                            success: function (data) {
+                                var date = new Date();
+                                var sendDate = formatDate("m月d日 h时i分", date, 4);
+                                Rmsg = Rmsg.replace(/\\r|\\n/gi, '</br>');
+                                var msgL = htmMsgLine.format(sendDate, Rmsg, currentUserID);
+                                elem.TalkOneMsg.append(msgL);
+                                $("#txtInput").text("").focus();
+                                scrollDown(elem.TalkOneMsg);
+                            },
+                            error: function (error) {
+                                var date = new Date();
+                                var sendDate = formatDate("m月d日 h时i分", date, 4);
+                                Rmsg = Rmsg.replace(/\\r|\\n/gi, '</br>');
+                                var msgL = htmMsgLine_unsend.format(sendDate, Rmsg, currentUserID);
+                                elem.TalkOneMsg.append(msgL);
 
+                                var emsg = "(" + error.code + ":" + error.resultText + ")";// JSON.stringify(error);
+                                elem.TalkOneMsg.append(htmError.format(emsg + ""));
+                                scrollDown(elem.TalkOneMsg);
+                                if (error.code == 1001) {
+                                    IMLogin();
+                                }
+                            }
+                        });
+                    }
                 }
             }
             break;

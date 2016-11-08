@@ -59,7 +59,15 @@
                     <div id="txtInput" class="msgArea" contenteditable="true" data-value=""></div>
                 </div>
                 <div id="sendBar" class="sendBar">
-                    <input type="button" id="btnSend" class="IM-btn-sendMsg" style="width:80px;" value="发 送" />
+                    <input type="button" id="" class="IM-btn-sendMsg" style="width:80px;display:none;" value="发 送" />
+                    <div class="box-chat-send">
+                        <span id="btnSend" class="sp-chat-send">发送</span>
+                        <span class="sp-chat-set"><em></em></span>
+                        <ul class="chat-set-list">
+                            <li data-ac="0" class="active"><i></i>按Enter键发送消息</li>
+                            <li data-ac="1"><i></i>按Ctrl+Enter键发送消息</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -92,7 +100,6 @@
                 <input type="hidden" id="groupTitle" value="" />
             </div>
         </div>
-
         <input type="hidden" id="hd_UserListData" value=""/>
         <input type="hidden" id="hd_GroupListData" value=""/>
         <input type="hidden" id="face-box-formID" value="" />
@@ -101,9 +108,9 @@
     </div>
 </div>
     <script src="./Scripts/JSCommon.js" charset="utf-8"></script>
-    <script src="./Scripts/face.js" charset="utf-8"></script>
     <script src="./Scripts/IMChat.js" charset="utf-8"></script>
     <script type="text/javascript">
+        const face=require('./Scripts/face');
         const WebUploader=require('./Scripts/webuploader/webuploader');
     </script>
 

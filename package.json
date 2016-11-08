@@ -1,16 +1,16 @@
-﻿{
-  "name":"QMB",
-  "version":"0.1.0",
-  "main":"main.js",
-  "author":"Joney",
-  "private":true,
-  "license":"YJJ-1.0",
-  "description":"A minimal Electron Demo application",
-  "keywords":[
+{
+  "name": "QMB",
+  "version": "0.1.0",
+  "main": "main.js",
+  "author": "Joney",
+  "private": true,
+  "license": "YJJ-1.0",
+  "description": "A minimal Electron Demo application",
+  "keywords": [
     "Electron",
     "demo"
   ],
-  "repository":{
+  "repository": {
     "type": "git",
     "url": "https://github.com/Joney025/QMB.git"
   },
@@ -19,5 +19,8 @@
     "dev": "electron . --debug",
     "package": "npm run pack-mac && npm run pack-win && npm run pack-linux",
     "packager": "electron-packager ./ QMB --all --out ./OutApp --version 1.4.4 --overwrite --icon=Images/favicon.ico"
+  },
+  "dependencies": {
+    "electron-json-storage": "^2.0.3"
   }
 }

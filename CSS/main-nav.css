@@ -6,6 +6,9 @@ body{
     overflow: hidden;
     background:url(../Images/body_bg_page.jpg) repeat-x scroll 0 0 #d5d5e1;
 }
+webview{
+    display:flex;position:fixed;height:100%;width:100%;
+}
 .container{
     /*overflow: hidden;display:flex;*/
     margin:0;
