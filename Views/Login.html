@@ -10,17 +10,24 @@
             height: 100%;
             width:100%;
             position:fixed;
-
+            overflow:hidden;
+            background: #fff;
+            -webkit-app-region: drag;
+            background: url('../Images/bgGray.jpg')repeat center center;
+            background-size:cover;
+            filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='../Images/bgGray.jpg', sizingMethod='scale');
         }
         .main{
-            position:relative;
-            margin:0;
-            padding:0;
-            display:block;
-            width:100%;
-            height:100%;
+            position: relative;
+            top: 10%;
+            margin: 0 auto;
+            padding: 0;
+            display: block;
+            width: 1024px;
+            height: 582px;
             -webkit-app-region: drag;
-            background: url('../Images/loginBG.png') no-repeat scroll 0 0 #fff;
+            background-image: url('../Images/loginBG.png');
+            background-position: -250px -67px;
         }
 .loginBox{
     position:absolute;
@@ -29,21 +36,95 @@
     box-shadow:3px 3px 8px #ccc;
     -webkit-app-region: no-drag;
     width:300px;
-    height:200px;
+    height:300px;
     top: 25%;
-    right: 10%;
+    right:100px;
     background:#fff;
 }
+        .loginBox ul{
+            list-style:none;
+            margin:0;
+            padding: 20px 48px;
+        }
+        .loginBox ul li{margin:2px 0;padding:0;}
+        .loginBox ul li span{display:inline-block;width:200px;margin:2px 0;padding:0;}
+        .loginBox ul li input{margin:0;padding:0 2px;width:200px;height:28px;outline:none;border:1px solid #ccc;box-sizing: border-box;}
+        .loginBox ul li input:active{border:1px solid #52B2F3;}
+        .loginBox ul li input:focus{border:1px solid #52B2F3;}
+        .loginBox ul li input.btn{
+            width:204px;
+            height:35px;
+            outline:none;
+            cursor:pointer;
+            background-color: #B3D2E4;
+            border: none;
+
+
+        }
+        .canLogin{
+            background-color: #1EA6F5;
+            color: #fff;
+        }
+        .help-box p{
+            margin:0;
+            padding:0px 48px;
+            height: 30px;
+            line-height: 30px;
+        }
+        .help-line{
+            cursor:pointer;
+        }
+        .help-line:hover span{
+            border-bottom:1px solid #99cc33;
+        }
+        .help-line i{
+            display: inline-block;
+            margin:0 2px;
+            padding:0;
+            height:20px;
+            width:20px;
+            line-height:20px;
+            vertical-align:middle;
+            background:url('../Images/question.png') no-repeat scroll 0 0;
+            background-size:20px;
+        }
+        .help-line span{
+            display: inline-block;
+            height:20px;
+            line-height:20px;
+            vertical-align:middle;
+        }
+        .sign-line{
+            cursor:pointer;
+        }
+        .sign-line:hover span{
+            border-bottom:1px solid #52B2F3;
+        }
+        .sign-line i{
+            display: inline-block;
+            margin:0 2px;
+            padding:0;
+            height:16px;
+            width:16px;
+            line-height:16px;
+            vertical-align:middle;
+            background:url('../Images/li.jpg') no-repeat scroll 0 0;
+            background-size:16px;
+        }
     </style>
 </head>
 <body>
     <div class="main">
         <div class="loginBox">
             <ul>
-                <li><span>LoginID:</span><input type="text" class="code"/></li>
-                <li><span>Password:</span><input type="password" class="pwd"/></li>
+                <li><span>LoginID:</span><input type="text" id="code" name="code" class="ms-input" maxlength="20" placeholder="User ID"/></li>
+                <li><span>Password:</span><input type="password" id="pwd" name="pwd" class="ms-input" maxlength="8" placeholder="User Password"/></li>
                 <li><span></span><input type="button" class="btn" value="Login"/></li>
             </ul>
+            <div class="help-box">
+                <p class="sign-line"><i></i><span>Sign Up.</span></p>
+                <p class="help-line"><i></i><span>You can get some help.</span></p>
+            </div>
         </div>
     </div>
 <script>
@@ -51,7 +132,16 @@
     const path = require('path');
 $(function(){
     $('.btn').on('click',function(){
-        window.location.href = path.join('file://', __dirname, '../index.html');
+        var urls=path.join('file://', __dirname, '../index.html');
+        //window.location.href = path.join('file://', __dirname, '../index.html');
+        this.props.history.pushState({passParam:true},urls);
+    });
+    $(".ms-input").keyup(function(){
+        if($(this).val()!='' && $(this).siblings().val()!=''){
+            $('.btn').addClass('canLogin');
+        }else{
+            $('.btn').removeClass('canLogin');
+        }
     });
 })
 </script>

@@ -43,6 +43,9 @@ function saySomething(){
 }
 
 $(document).ready(function(){
+    let temp=this.props.location.state;
+    console.log(temp);
+    IMLogin();
     appCache.get('IM_history',function(err,data){
         if(err){console.log(err);$("#cacheLog").text('Error:'+err);}
         console.log(data);
@@ -56,11 +59,8 @@ $(document).ready(function(){
         winMin();
     });
     $(".clo-max").click(function(){
-        winMax();LoginID:
-
-            });
-    IMLogin();
-
+        winMax();
+    });
     $(".sys-setting").on('click',function(e){
         if($(".setting-list").hasClass("fo-show")){
             $(".setting-list").removeClass("fo-show");
@@ -75,8 +75,9 @@ $(document).ready(function(){
             document.querySelector('#about-modal').classList.add('is-shown');
         }else if($(this).attr("data-action")=='exit'){
             var urls=path.join('file://', __dirname, './Views/Login.html');
-            //window.location.href = path.join('file://', __dirname, './Views/Login.html');
-            window.open(urls);
+            //window.location.href =urls;
+            //window.open(urls);
+            this.props.history.pushState({passParam: true},urls);
         }
     });
     $("#nav_menu>li").click(function(e){
