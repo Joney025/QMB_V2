@@ -37,7 +37,21 @@
     const {shell}=require('electron');
     const ipCmd =require('electron').ipcRenderer;
     const nativeImg=require('electron').nativeImage;
-    
+
+    const holder=document.getElementById('sayWhat');
+    holder.ondragover=()=>{
+        return false;
+    };
+    holder.ondragleave=holder.ondragend=()=>{
+        return false;
+    };
+    holder.ondrop=(ev)=>{
+        ev.preventDefault();
+        for (let f of ev.dataTransfer.files) {
+            console.log('File(s) you dragged here:'，f.path);
+        }
+        return false;
+    };
     $(function(){
         $("#abtn_send").on('click',function(){
             SendBroadcast();
