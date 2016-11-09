@@ -55,6 +55,9 @@ app.on('ready', function() {
       mainWindow.maximize();
     }
   });
+  ipc.on('app-logout',function(){
+    mainWindow.loadURL('file://' + __dirname + '/Views/login.html');
+  });
   ipc.on('tray-removed', function () {
     app.exit(0);
     tray.destroy();
@@ -115,9 +118,9 @@ function InitWin(){
     makeSingleInstance();
     // Create the browser window.
     var windowOptions = {
-      width:850,
+      width:900,
       height:700,
-      minWidth:850,
+      minWidth:900,
       minHeight:700,
       //icon:'Images/Appx.png',
       //title: app.getName(),
@@ -132,7 +135,8 @@ function InitWin(){
 
     mainWindow.loadURL('file://' + __dirname + '/Views/login.html');
     webContents=mainWindow.webContents;
-    mainWindow.webContents.openDevTools();//显示调试工具
+
+    webContents.openDevTools();//显示调试工具
 
     mainWindow.on('closed', function() {
       mainWindow = null;

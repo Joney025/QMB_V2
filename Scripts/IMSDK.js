@@ -43,8 +43,7 @@ function saySomething(){
 }
 
 $(document).ready(function(){
-    let temp=this.props.location.state;
-    console.log(temp);
+    //let temp=this.props.location.state;
     IMLogin();
     appCache.get('IM_history',function(err,data){
         if(err){console.log(err);$("#cacheLog").text('Error:'+err);}
@@ -74,10 +73,11 @@ $(document).ready(function(){
         if($(this).attr("data-action")=='about') {
             document.querySelector('#about-modal').classList.add('is-shown');
         }else if($(this).attr("data-action")=='exit'){
-            var urls=path.join('file://', __dirname, './Views/Login.html');
+            _ipc.send('app-logout');
+            //var urls=path.join('file://', __dirname, './Views/Login.html');
             //window.location.href =urls;
             //window.open(urls);
-            this.props.history.pushState({passParam: true},urls);
+            //this.props.history.pushState({passParam: true},urls);
         }
     });
     $("#nav_menu>li").click(function(e){

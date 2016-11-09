@@ -23,11 +23,11 @@
             margin: 0 auto;
             padding: 0;
             display: block;
-            width: 1024px;
+            width:900px;
             height: 582px;
             -webkit-app-region: drag;
             background-image: url('../Images/loginBG.png');
-            background-position: -250px -67px;
+            background-position: -350px -67px;
         }
 .loginBox{
     position:absolute;
@@ -38,7 +38,7 @@
     width:300px;
     height:300px;
     top: 25%;
-    right:100px;
+    right:90px;
     background:#fff;
 }
         .loginBox ul{
@@ -58,10 +58,8 @@
             cursor:pointer;
             background-color: #B3D2E4;
             border: none;
-
-
         }
-        .canLogin{
+        .loginBox ul li input.btn.canLogin{
             background-color: #1EA6F5;
             color: #fff;
         }
@@ -111,15 +109,26 @@
             background:url('../Images/li.jpg') no-repeat scroll 0 0;
             background-size:16px;
         }
+        .footer{
+            position: fixed;
+            bottom: 10px;
+            margin: 0 auto;
+            padding: 0;
+            text-align: center;
+            width: 100%;
+        }
+        .footer span{
+           display:inline-block;
+        }
     </style>
 </head>
 <body>
     <div class="main">
         <div class="loginBox">
             <ul>
-                <li><span>LoginID:</span><input type="text" id="code" name="code" class="ms-input" maxlength="20" placeholder="User ID"/></li>
-                <li><span>Password:</span><input type="password" id="pwd" name="pwd" class="ms-input" maxlength="8" placeholder="User Password"/></li>
-                <li><span></span><input type="button" class="btn" value="Login"/></li>
+                <li><span>LoginID:</span><input type="text" id="code" name="code" class="ms-input" maxlength="20" placeholder="Phone Number Or Email."/></li>
+                <li><span>Password:</span><input type="password" id="pwd" name="pwd" class="ms-input" maxlength="8" placeholder="Login Password"/></li>
+                <li><span></span><input type="button" class="btn" value="Login" disabled="true"/></li>
             </ul>
             <div class="help-box">
                 <p class="sign-line"><i></i><span>Sign Up.</span></p>
@@ -127,23 +136,44 @@
             </div>
         </div>
     </div>
+    <div class="footer"><span style="font-family:arial;">Copyright &copy</span><span>2016 By <em class="ab-info">Joney.</em></span></div>
 <script>
     require('../Scripts/jquery-1.8.2');
     const path = require('path');
 $(function(){
     $('.btn').on('click',function(){
-        var urls=path.join('file://', __dirname, '../index.html');
-        //window.location.href = path.join('file://', __dirname, '../index.html');
-        this.props.history.pushState({passParam:true},urls);
+        login();
     });
     $(".ms-input").keyup(function(){
-        if($(this).val()!='' && $(this).siblings().val()!=''){
+        if($(this).val()!='' && $(this).parent().siblings().find('input.ms-input').val()!=''){
             $('.btn').addClass('canLogin');
+            $('.btn').removeProp('disabled');
         }else{
             $('.btn').removeClass('canLogin');
+            $('.btn').prop('disabled',true);
         }
     });
-})
+
+});
+function login(){
+    if($('.btn').prop('disabled')){return false;}
+    var urls=path.join('file://', __dirname, '../index.html');
+    window.location.href =urls;
+    //this.props.history.pushState({passParam:true},urls);
+}
+    //键盘回车事件
+    document.onkeyup = function (e) {
+        var ev = e || window.event;
+        var kc = ev.keyCode;
+        switch (kc) {
+            case 13:
+
+                login();
+                break;
+            default:
+                break;
+        }
+    };
 </script>
 </body>
 </html>
