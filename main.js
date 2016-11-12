@@ -83,7 +83,7 @@ function initAppTray(){
     },
       {label:'在线',type:'radio',checked:true},
       {label:'隐身',type:'radio'},
-      {label:'离线'}
+      {label:'离线',type:'radio'}
   ]);
   tray.setToolTip('我的圈圈');
   tray.setContextMenu(contextMenu);

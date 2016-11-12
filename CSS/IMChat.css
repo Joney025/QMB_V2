@@ -1403,12 +1403,12 @@ margin: 5px;*/
 }
 
 .chat-listContent li {
-    padding: 5px 5px 0 5px;
+    padding: 5px 0px;
     overflow: hidden;
     margin: 0;
     border-color: #ccc;
     position: relative;
-    border-top: 1px solid #e3e3e3;
+    border-bottom: 1px solid rgba(230, 228, 228, 0.33);
     line-height: 100%;
     cursor: pointer;
     background: #f6f6f6;
@@ -1446,6 +1446,7 @@ margin: 5px;*/
 .chat-listContent > li > div {
     display: block;
     float: left;
+    margin:5px;
 }
 
 .chat-listContent > li > img {
@@ -1471,7 +1472,7 @@ margin: 5px;*/
     font-size: 0;
     text-align: center;
     border: 1px solid #ccc;
-    border-radius:50%;
+    border-radius: 50%;
 }
 
 .chat-listContent li p img {
@@ -1483,21 +1484,21 @@ margin: 5px;*/
 }
 
 .chat-listContent li p {
-    float:left;
-    height: 16px;
-    line-height: 15px;
+    float: left;
+    height: 20px;
+    line-height: 20px;
     overflow: hidden;
     margin: 0;
-    padding:2px 0 0 5px;
+    padding: 0px;
     text-align: left;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 .chat-listContent li p.member-title{
-    width: 150px;
+    width: 158px;
 }
 .chat-listContent li p.member_msg {
-    width: 130px;
+    max-width: 135px;
     font-size: 12px;
     margin-top:4px;
     color: #868383;
@@ -1508,8 +1509,12 @@ margin: 5px;*/
 }
 .chat-listContent li p a.msg-stime{
     float: right;
+    text-align: right;
+    max-width: 65px;
     color: #ccc;
     font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 
