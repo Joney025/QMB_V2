@@ -8,5 +8,54 @@
                 【李克强启程出访亚欧4国：166小时出席50多场活动】李克强2日乘专机赴吉尔吉斯首都比什凯克。未来166小时，总理将访问吉尔吉斯斯坦、哈萨克斯坦、拉脱维亚和俄罗斯4国5城市，出席上合总理会、中哈总理定期会晤、中国—中东欧国家领导人会晤、中俄总理定期会晤。以分秒计的“#克强节奏#”再次启动。
             </pre>
         </div>
+        <div class="progressbar">
+            <span>10</span>%
+        </div>
+        <div class="progressbar">
+            <span>20</span>%
+        </div>
+        <div class="progressbar">
+            <span>30</span>%
+        </div>
+        <div class="progressbar">
+            <span>50</span>%
+        </div>
+        <div class="circle-progress" style="left:660px">
+            <div class="progress-pie-left"><div class="progress-pl-left"></div></div>
+            <div class="progress-pie-right"><div class="progress-pr-right"></div></div>
+            <div class="progress-mask"><span>60</span>%</div>
+        </div>
     </div>
+    <script>
+        require('./Scripts/jquery-1.8.2');
+        var interval=null;
+        $(function(){
+            clearInterval(interval);
+            interval=setInterval(runProgress,2000);
+        });
+        function runProgress(){
+            $('.progressbar').each(function(index, el) {
+                var num = $(this).find('span').text();
+                console.log(num);
+                if(parseInt(num)<100){
+                    var proNum=parseInt(num)+1;
+                    $(this).find('span').text(proNum);
+                    $(this).addClass('progressbar-' + proNum);
+                }else{
+                    clearInterval(interval);
+                }
+            });
+            $('.circle-progress').each(function(index, el) {
+                var num = $(this).find('span').text() * 3.6;
+                console.log(num);
+                if (num<=180) {
+                    $(this).find('.progress-pr-right').css('transform', "rotate(" + num + "deg)");
+                } else {
+                    $(this).find('.progress-pr-right').css('transform', "rotate(180deg)");
+                    $(this).find('.progress-pl-left').css('transform', "rotate(" + (num - 180) + "deg)");
+                    $(this).find('span').text(num+1);
+                };
+            });
+        }
+    </script>
 </template>
